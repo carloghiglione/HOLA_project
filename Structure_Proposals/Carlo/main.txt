@@ -1,0 +1,30 @@
+# codice per eseguire una simulazione di interazione col sito web
+
+- N_items           (int)            # numero di items
+- N_prices          (int)            # numero di prezzi per ogni item
+- dirichlet_params  (vector)         # parametri della dirichlet
+- poisson_param     (float)          # parametro della poisson
+- tot_days          (int)            # numero totoale di giorni per fare la simulazione
+- margin_matrix     (matrix)         # margin_matrix[i,j] margine del prodotto i al prezzo j
+- lambda            (list(float))    # parametro lambda di click, uno per ogni classe
+- connection_matrix (list((matrix))  # matrice delle connessioni della pagina web, una matrice per ogni classe
+- prim_sec_matrix   (list((matrix))  # for item i, prim_sec[i,1] secondary item in slot 1, prim_sec[i,2] secondary item in slot 2, una matrice per ogni classe
+
+
+web_page = WebPage(connection_matrix, prim_sec_matrix)        # inizializzo sito web
+env = Environment(dirichlet_params, poisson_param, n_classes) # inizializzo generatore di clienti
+
+for day in tot_days:
+	todays_customers = env.return_users()     # (class, initial_item) dei customer di oggi
+	margin_list = list()                      # lista dove raccolgo i margini di oggi per ogni cliente
+	items_bought_list = list()                # list dove raccolgo i carrelli acquistati dai clienti di oggi
+	for class, init_page in todays_customers:
+		user = User(class, init_page)
+		items_bought = web_page.navigate_page(user)                               # lo user naviga la pagina web e acquista certi item
+		margin = ComputeMargin(items_bought, web_page.current_prices[class])      # calcolo i margini dei prodotti acquistati, funzione esterna
+		margin_list.append(margin)
+		items_bought_list.append(items_bought)
+	web_page.update_prices(margin_list, items_bought_list, todays_customers[classes]) # aggiornoi prezzi con l'algoritmo
+	
+	
+	

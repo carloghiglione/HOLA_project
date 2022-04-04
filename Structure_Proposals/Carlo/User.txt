@@ -1,0 +1,17 @@
+# classe dello user, esegue una simulazione di navigazione nel sito a partire da 
+# una pagina iniziale acquistando degli item
+
+# Input: classe, prima pagina di visita, parametro lambda
+
+User(class, first_webpage, lambda):
+
+	- class                (int)              # classe dello user
+	- reservation_price    (vector o float)   # reservation price dello user (è un unico valore o un valore per ogni item?)
+	- lambda               (float)            # parametro lambda per i click
+	- first_webpage        (int)              # item nella prima webpage visualizzata dall'utente (anch pagina sito competitore)
+	- items_bought         (vector)           # vector that collects number of items per type bought by the user
+	- connection_matrix    (matrix)           # matrice delle connessioni della pagina web
+	- prim_sec             (matrix)           # for item i, prim_sec[i,1] secondary item in slot 1, prim_sec[i,2] seocndary item in slot 2
+
+	+ round()           # perform a simulation round of the visit of the webpage, updates items_bought
+	+ buy()             # return number of items bought by the user

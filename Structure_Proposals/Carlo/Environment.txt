@@ -1,0 +1,38 @@
+# genera una lista che contiene la prima pagina di accesso e la classe
+# di un numero casuale di utenti
+
+# Input: parametri della Dirichlet e della Poisson, numero di classi
+
+
+Environment(dirichlet_params, poisson_param, n_classes)
+
+	- dirichlet_params  (list(vector))    # parametri della Dirichlet, uno per ogni classe
+	- poisson_param     (list(float))     # parametro della Poisson, uno per ogni classe
+	- n_classes         (int)             # numero di classi
+
+	- alphas()            # restituisce i valori degli alpha della Dirichlet
+	- n_users()           # restituisce il numero totale di utenti che accede al sito
+        + return_users()      # restituisce una lista di pairs (classe, pagina iniziale di accesso al sito)
+
+
+alphas():
+	return Dirichlet.sample(dirichlet_params)
+
+n_users():
+	return Poisson.sample(poisson_param)
+# n_users potrebbe anche essere fisso a priori e non modellizzato con una poisson
+
+return_users():
+	first_pages = list()
+        classes = list()
+	for i in n_classes:
+		n_users = n_users()
+		classes.append(i*ones(n_users))
+		first_pages.append(DiscreteUniform(alphas()).sample(size = n_users))
+	return (classes, first_pages) 
+
+
+
+
+
+

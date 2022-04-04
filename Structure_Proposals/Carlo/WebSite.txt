@@ -1,0 +1,14 @@
+# simula una visita alla pagina web a partire da una matrice di connessione, 
+# una matrice di struttura primaty-secondary e una pagina inziale
+
+class WebSite(connection_matrix, prim_sec_matrix):
+
+	- connection_matrix  (list(matrix))  # lista di matrici delle connessioni della pagina web, una per ogni classe
+	- prim_sec_matrix    (list(matrix))  # per il primary item i, prim_sec[i,1] è il secondary item nello slot 1, prim_sec[i,2] è il secondary item nello slot 2, una matrice per ogni classe
+	- current_prices     (list(vector))  # vettore che contiente i prezzi correnti dei prodotti, uno per ogni classe
+
+	+ update_prices(todays_margins, todays_units_sold, todays_classes) # fa l'update dei prezzi coerentemente alle vendite e ai margini odierni
+	+ navigate_website(user)                                           # naviga il sito a partire dalle caratteristiche di un certo user
+
+# l'algoritmo di pricing è dentro update_prices
+	

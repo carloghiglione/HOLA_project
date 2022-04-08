@@ -48,13 +48,15 @@ class User:
         self.environment = environment#environment is the specific day website
         self.starting_product = starting_product
         self.products = [0 for i in range(5)]#1 if if product has been bought, 0 if not
+        self.clicked = [0 for i in range(5)]#1 if if product has been clicked, 0 if not
         self.cart = [0 for i in range(5)]#n* elements per product
         self.dynamic_transition_prob = copy.deepcopy(environment.transition_prob)
 
     def new_primary(self, primary):
 
+        self.clicked[primary] = 1
         for i in range(5):
-            self.dynamic_transition_prob[i, primary]= 0#now that it is shown as primal, it can never be selected by other products
+            self.dynamic_transition_prob[i, primary] = 0#now that it is shown as primal, it can never be selected by other products
         buy = npr.binomial(n = 1, size = 1, p = self.environment.conversion_rate[primary])
 
         if buy:
@@ -76,23 +78,34 @@ class User:
         return singular_margin
 
 class Day:
-    def __init__ (self, g_web, price_decision_parameters):
-        self.pulled_prices = self.pull_price(price_decision_parameters)
+    def __init__ (self, g_web, prices):
+        self.pulled_prices = prices
+        self.profit = 0
         self.website = Day_Website(g_web, self.pulled_prices)
         self.users = self.website.get_users_per_product()
         self.items_sold = [0 for i in range(5)]#n items sold per type of product
         self.individual_sales = [0 for i in range(5)]#n costumers that bought type of product, regardless of the amount
+        self.individual_clicks = [0 for i in range(5)]#n costumers that clicked type of product, regardless of if they bought
 
-    def pull_price(self, params):
-        dosomething = 0
-        return [15,0,0]
 
     def run_simulation(self):
-        profit = 0
         for i in range(5):
             for j in range(self.users[i]):
                 user = User(self.website, i)
                 user.simulate()
-                profit = profit + user.checkout()
-                self.items_sold = [sum(x) for x in zip(self.items_sold, user.cart)]
+                self.profit = self.profit + user.checkout()
+                self.items_sold = [sum(x) for x in zip(self.items_sold, user.cart)]# self.items_sold = self.items_sold + user.cart elementwise
                 self.individual_sales = [sum(x) for x in zip(self.individual_sales, user.products)]
+                self.individual_clicks = [sum(x) for x in zip(self.individual_clicks, user.clicked)]
+
+
+
+for t in range(horizon_time):
+    for i in range(5):
+        day_prices = base_prices
+        day_prices[i]++
+        d = Day(environment, day_prices)
+        d.run_simulation()
+        decision_param = dosomething
+        total_margin += d.profit()
+        day_prices = getprices(decision_param)

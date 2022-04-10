@@ -3,25 +3,20 @@ import numpy.random as npr
 import math as mt
 import copy
 
+from Classes import Hyperparameters
 
-class Hyperparameters:
-    def __init__(self, transition_prob_listofmatrix, dir_params_listofvector, pois_param_vector, conversion_rate_listofmatrix, margin_matrix):
-        self.global_transition_prob = transition_prob_listofmatrix  # transition_prob[i,j] = prob that j is selected given i as primal, this econdes both selection probability and probability to see j
-        self.dir_params = dir_params_listofvector  # vector with dirichlet parameters
-        self.pois_param = pois_param_vector
-        self.global_conversion_rate = conversion_rate_listofmatrix  # conversion_rate[i,j] = conversion rate of product i for price j
-        self.global_margin = margin_matrix  # margin[i,j] = margin of item i for price j
+# TODO DEFINE FEATURE-TYPE MECHANISM IN DAY
 
 
-class Daily_Website:
+class Daily_Website_types:
     def __init__(self, env : Hyperparameters, pulled_prices : np.ndarray):
         self.transition_prob = env.global_transition_prob
         self.alphas = self.sample_user_partitions(env.dir_params)
         self.n_users = self.sample_n_users(env.pois_param)
         self.price = pulled_prices
         self.n_estimated_types = pulled_prices.shape[0]
-        self.conversion_rates = self.select_conversion_rates(env.global_conversion_rate, pulled_prices)  # CHECK WHEN TYPE DIVISION
-        self.margin = self.select_margins(env.global_margin, pulled_prices)  # CHECK WHEN TYPE DIVISION
+        self.conversion_rates = self.select_conversion_rates(env.global_conversion_rate, pulled_prices)
+        self.margin = self.select_margins(env.global_margin, pulled_prices)
 
     def sample_user_partitions(self, params):
         alphas = []
@@ -39,14 +34,15 @@ class Daily_Website:
         ret = np.ndarray(shape=(3, 5))
         for i in range(3):
             for j in range(5):
-                # ret[i,j] = conv_rates[i][j,prices[i,j]]#when prices are divided between types
-                ret[i, j] = conv_rates[i][j, prices[j]]
+                for t in range(self.n_estimated_types):
+                    ret[i, t, j] = conv_rates[i][j,prices[t,j]]
         return ret
 
     def select_margins(self, margins, prices):
-        ret = np.array(5)
-        for j in range(5):
-            ret[j] = margins[j, prices[j]]
+        ret = np.ndarray(shape=(self.n_estimated_types, 5))
+        for i in range(self.n_estimated_types):
+            for j in range(5):
+                ret[i, j] = margins[j, prices[i, j]]
         return ret
 
     def get_users_per_product_and_type(self):
@@ -69,11 +65,12 @@ class Daily_Website:
             users_pp[t, :] = np.array(users)
         return users_pp
 
-
-class User:  # CHECK .checkout() WHEN DIFFERENT TYPES ARE STUDIED
-    def __init__(self, website: Daily_Website, starting_product, u_type, mean_purchases_per_product=2*np.ones(shape=5)):
+class User_types:  # CHECK .checkout() WHEN DIFFERENT TYPES ARE STUDIED
+    def __init__(self, website: Daily_Website_types, starting_product, u_type, feature1, feature2,
+                 mean_purchases_per_product=2*np.ones(shape=5)):
         self.website = website  # environment is the specific day website
         self.u_type = u_type
+        self.est_type = self.estimate_type(feature1, feature2)
         self.mean_purchases_per_product = mean_purchases_per_product
         self.starting_product = starting_product
         self.products = [0 for i in range(5)]  # 1 if product has been bought, 0 if not
@@ -81,17 +78,19 @@ class User:  # CHECK .checkout() WHEN DIFFERENT TYPES ARE STUDIED
         self.cart = [0 for i in range(5)]  # n* elements per product
         self.dynamic_transition_prob = copy.deepcopy(website.transition_prob[self.u_type])
 
-    def new_primary(self, primary):
+    def estimate_type(self, feature1, feature2):
+        dosomething = 0
+        return 1
 
+    def new_primary(self, primary):
         self.clicked[primary] = 1
         for i in range(5):
             # now that it is shown as primal, it can never be selected by other products
             self.dynamic_transition_prob[i, primary] = 0
-        buy = npr.binomial(n=1, size=1, p=self.website.conversion_rates[self.u_type, primary])
-
+        buy = npr.binomial(n=1, size=1, p=self.website.conversion_rates[self.u_type, self.est_type, primary])
         if buy:
             self.products[primary] = 1
-            how_much = npr.poisson(size=1, lam=self.mean_purchases_per_product[primary])+1  # +1 since we know the user buys
+            how_much = npr.poisson(size=1, lam=self.mean_purchases_per_product[primary])+1
             self.cart[primary] = how_much
             for j in range(5):
                 click = npr.binomial(n=1, size=1, p=self.dynamic_transition_prob[primary, j])
@@ -104,33 +103,28 @@ class User:  # CHECK .checkout() WHEN DIFFERENT TYPES ARE STUDIED
     def checkout(self):
         singular_margin = 0
         for i in range(5):
-            # when different prices for different types
-            # singular_margin = singular_margin + self.cart[i] * self.website.margin[self.u_type, i]
-            singular_margin = singular_margin + self.cart[i]*self.website.margin[i]
+            singular_margin = singular_margin + self.cart[i] * self.website.margin[self.est_type, i]
         return singular_margin
 
-
-class Day:
-    def __init__(self, g_web : Hyperparameters, prices):
+class Day_types:
+    def __init__(self, g_web: Hyperparameters, prices):
         self.pulled_prices = prices
         self.profit = 0
-        self.website = Daily_Website(g_web, self.pulled_prices)
+        self.website = Daily_Website_types(g_web, self.pulled_prices)
         self.n_users = self.website.get_users_per_product_and_type()
-        # n items sold per type of product
-        self.items_sold = [0 for i in range(5)]
-        # n costumers that bought type of product, regardless of the amount
+        self.items_sold = [0 for i in range(5)]  # n items sold per type of product
         self.individual_sales = [0 for i in range(5)]
-        # n costumers that clicked type of product, regardless of if they bought
         self.individual_clicks = [0 for i in range(5)]
 
     def run_simulation(self):
         for t in range(3):
             for p in range(5):
                 for j in range(self.n_users[t, p]):
-                    user = User(self.website, p, t)
+                    f1 = 1  # TODO SETTALE
+                    f2 = 1
+                    user = User_types(self.website, p, t, f1, f2)
                     user.simulate()
                     self.profit = self.profit + user.checkout()
-                    # self.items_sold = self.items_sold + user.cart elementwise
                     self.items_sold = [sum(x) for x in zip(self.items_sold, user.cart)]
                     self.individual_sales = [sum(x) for x in zip(self.individual_sales, user.products)]
                     self.individual_clicks = [sum(x) for x in zip(self.individual_clicks, user.clicked)]

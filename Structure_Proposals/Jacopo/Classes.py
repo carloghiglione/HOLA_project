@@ -20,8 +20,8 @@ class Daily_Website:
         self.n_users = self.sample_n_users(env.pois_param)
         self.price = pulled_prices
         self.n_estimated_types = pulled_prices.shape[0]
-        self.conversion_rates = self.select_conversion_rates(env.global_conversion_rate, pulled_prices)  # CHECK WHEN TYPE DIVISION
-        self.margin = self.select_margins(env.global_margin, pulled_prices)  # CHECK WHEN TYPE DIVISION
+        self.conversion_rates = self.select_conversion_rates(env.global_conversion_rate, pulled_prices)
+        self.margin = self.select_margins(env.global_margin, pulled_prices)
 
     def sample_user_partitions(self, params):
         alphas = []
@@ -39,7 +39,6 @@ class Daily_Website:
         ret = np.ndarray(shape=(3, 5))
         for i in range(3):
             for j in range(5):
-                # ret[i,j] = conv_rates[i][j,prices[i,j]]#when prices are divided between types
                 ret[i, j] = conv_rates[i][j, prices[j]]
         return ret
 
@@ -70,11 +69,11 @@ class Daily_Website:
         return users_pp
 
 
-class User:  # CHECK .checkout() WHEN DIFFERENT TYPES ARE STUDIED
-    def __init__(self, website: Daily_Website, starting_product, u_type, mean_purchases_per_product=2*np.ones(shape=5)):
+class User:
+    def __init__(self, website: Daily_Website, starting_product, u_type, mean_extra_purchases_per_product=2*np.ones(shape=5)):
         self.website = website  # environment is the specific day website
         self.u_type = u_type
-        self.mean_purchases_per_product = mean_purchases_per_product
+        self.mpp = mean_extra_purchases_per_product
         self.starting_product = starting_product
         self.products = [0 for i in range(5)]  # 1 if product has been bought, 0 if not
         self.clicked = [0 for i in range(5)]  # 1 if product has been clicked, 0 if not
@@ -82,7 +81,6 @@ class User:  # CHECK .checkout() WHEN DIFFERENT TYPES ARE STUDIED
         self.dynamic_transition_prob = copy.deepcopy(website.transition_prob[self.u_type])
 
     def new_primary(self, primary):
-
         self.clicked[primary] = 1
         for i in range(5):
             # now that it is shown as primal, it can never be selected by other products
@@ -91,7 +89,7 @@ class User:  # CHECK .checkout() WHEN DIFFERENT TYPES ARE STUDIED
 
         if buy:
             self.products[primary] = 1
-            how_much = npr.poisson(size=1, lam=self.mean_purchases_per_product[primary])+1  # +1 since we know the user buys
+            how_much = npr.poisson(size=1, lam=self.mpp[primary])+1  # +1 since we know the user buys
             self.cart[primary] = how_much
             for j in range(5):
                 click = npr.binomial(n=1, size=1, p=self.dynamic_transition_prob[primary, j])
@@ -104,8 +102,6 @@ class User:  # CHECK .checkout() WHEN DIFFERENT TYPES ARE STUDIED
     def checkout(self):
         singular_margin = 0
         for i in range(5):
-            # when different prices for different types
-            # singular_margin = singular_margin + self.cart[i] * self.website.margin[self.u_type, i]
             singular_margin = singular_margin + self.cart[i]*self.website.margin[i]
         return singular_margin
 

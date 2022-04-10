@@ -26,8 +26,12 @@ class Environment:
                 first_pages.append(npr.choice(a = cl, size = 1, p = self.alphas()))
         return classes, first_pages
 
+
 class WebSite:
-    def __init__(self, connection_matrix, prices, choiche):
+    def __init__(self, connection_matrix, initial_prices):
         self.con_matrix = connection_matrix
-        self.base_prices = prices
-        self.current_prices = self.base_prices[choiche]
+        self.current_prices = initial_prices
+        
+        
+        
+        

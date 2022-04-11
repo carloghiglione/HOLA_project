@@ -26,15 +26,4 @@ class greedy:
             print("Convergence of greedy reached")
 
 
-#testing
-hyper = Hyperparameters(...)
-starting_prices=[0,0,0,0,0]
-starting_day = Day(hyper,starting_prices)
-starting_day.run_simulation()
-
-g=greedy(hyper, starting_day.profit , starting_prices)
-
-while (g.check_convergence==False) :
-          g.step()
-print(g.best_prices)
 

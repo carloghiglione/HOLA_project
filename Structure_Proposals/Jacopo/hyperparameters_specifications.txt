@@ -19,3 +19,9 @@ conversion_rate_listofmatrix[i][j,k] -> probabilità che un utente di tipo i com
 margin_matrix:
 matrice dei margini
 margin_matrix[i,j] -> margine sulla vendità di un oggetto i al prezzo j
+
+
+Day:
+
+prices:
+vettore che specifica per ogni prodotto che prezzo è stato selezionato: prices[i] = j -> per il prodotto i è stato selezionato il j-esimo prezzo (j = 0,1,2,3)

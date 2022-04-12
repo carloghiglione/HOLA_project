@@ -14,11 +14,11 @@ class Hyperparameters:
 
 
 class Daily_Website:
-    def __init__(self, env : Hyperparameters, pulled_prices : np.ndarray):
+    def __init__(self, env : Hyperparameters, pulled_prices):
         self.transition_prob = env.global_transition_prob
         self.alphas = self.sample_user_partitions(env.dir_params)
         self.n_users = self.sample_n_users(env.pois_param)
-        self.price = pulled_prices
+        self.price = pulled_prices.astype(int)
         self.n_estimated_types = pulled_prices.shape[0]
         self.conversion_rates = self.select_conversion_rates(env.global_conversion_rate, pulled_prices)
         self.margin = self.select_margins(env.global_margin, pulled_prices)
@@ -26,13 +26,13 @@ class Daily_Website:
     def sample_user_partitions(self, params):
         alphas = []
         for i in range(3):
-            alphas.append(npr.dirichlet(alpha=params[i], size=1))
+            alphas.append(npr.dirichlet(alpha=params[i], size=1)[0])
         return alphas
 
     def sample_n_users(self, params):
         n_users = []
         for i in range(3):
-            n_users.append(npr.poisson(lam = params[i], size=1))
+            n_users.append(int(npr.poisson(lam=params[i], size=1)))
         return n_users
 
     def select_conversion_rates(self, conv_rates, prices):
@@ -43,13 +43,13 @@ class Daily_Website:
         return ret
 
     def select_margins(self, margins, prices):
-        ret = np.array(5)
+        ret = np.zeros(5)
         for j in range(5):
             ret[j] = margins[j, prices[j]]
         return ret
 
     def get_users_per_product_and_type(self):
-        users_pp = np.ndarray(shape=(3, 6))
+        users_pp = np.ndarray(shape=(3, 5), dtype=int)
         for t in range(3):
             users = []
             total = 0
@@ -64,8 +64,8 @@ class Daily_Website:
                 else:
                     for j in range(25):
                         print("ERROR IN USER EXTRACTION")
-            users.append(self.n_users[t] - total)
-            users_pp[t, :] = np.array(users)
+            users.append(int(self.n_users[t] - total))
+            users_pp[t, :] = np.array(users, dtype=int)
         return users_pp
 
 
@@ -107,8 +107,9 @@ class User:
 
 
 class Day:
-    def __init__(self, g_web : Hyperparameters, prices):
-        self.pulled_prices = prices
+    def __init__(self, g_web: Hyperparameters, prices):
+        self.pulled_prices = prices.astype(int)
+        self.env = g_web
         self.profit = 0
         self.website = Daily_Website(g_web, self.pulled_prices)
         self.n_users = self.website.get_users_per_product_and_type()
@@ -130,3 +131,15 @@ class Day:
                     self.items_sold = [sum(x) for x in zip(self.items_sold, user.cart)]
                     self.individual_sales = [sum(x) for x in zip(self.individual_sales, user.products)]
                     self.individual_clicks = [sum(x) for x in zip(self.individual_clicks, user.clicked)]
+
+    def run_clairvoyant_simulation(self, best_prices):
+        best_prices = best_prices.astype(int)
+        best_website = Daily_Website(self.env, best_prices)
+        profit = 0
+        for t in range(3):
+            for p in range(5):
+                for j in range(self.n_users[t, p]):
+                    user = User(best_website, p, t)
+                    user.simulate()
+                    profit = profit + user.checkout()
+        return profit

@@ -26,13 +26,13 @@ class Daily_Website:
     def sample_user_partitions(self, params):
         alphas = []
         for i in range(3):
-            alphas.append(npr.dirichlet(alpha=params[i], size=1))
+            alphas.append(npr.dirichlet(alpha=params[i], size=1)[0])
         return alphas
 
     def sample_n_users(self, params):
         n_users = []
         for i in range(3):
-            n_users.append(npr.poisson(lam = params[i], size=1))
+            n_users.append(int(npr.poisson(lam=params[i], size=1)))
         return n_users
 
     def select_conversion_rates(self, conv_rates, prices):
@@ -43,13 +43,13 @@ class Daily_Website:
         return ret
 
     def select_margins(self, margins, prices):
-        ret = np.array(5)
+        ret = np.zeros(5)
         for j in range(5):
             ret[j] = margins[j, prices[j]]
         return ret
 
     def get_users_per_product_and_type(self):
-        users_pp = np.ndarray(shape=(3, 6))
+        users_pp = np.ndarray(shape=(3, 5), dtype=int)
         for t in range(3):
             users = []
             total = 0
@@ -64,8 +64,8 @@ class Daily_Website:
                 else:
                     for j in range(25):
                         print("ERROR IN USER EXTRACTION")
-            users.append(self.n_users[t] - total)
-            users_pp[t, :] = np.array(users)
+            users.append(int(self.n_users[t] - total))
+            users_pp[t, :] = np.array(users, dtype=int)
         return users_pp
 
 

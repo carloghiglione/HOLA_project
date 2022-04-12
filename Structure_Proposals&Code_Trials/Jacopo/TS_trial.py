@@ -54,7 +54,7 @@ class Items_TS_Learner:
         self.n_items = n_items
 
     def pull_prices(self):
-        idx = -1*np.ones(self.n_items)
+        idx = -1*np.ones(self.n_items, dtype=int)
         for i in range(self.n_items):
             idx[i] = self.learners[i].pull_arm()
         return idx

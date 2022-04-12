@@ -36,7 +36,7 @@ class UCB(Learner):
     # to select the arms with highest upper confidence bound
     def pull_arm(self):
         idx = np.argmax(
-            (self.means + self.widths) * self.margins)  # I multiply everything by the prices, then returnt the max
+            (self.means + self.widths) * self.margins)  # I multiply everything by the prices, then return the max
         return int(idx)
 
     def update(self, arm_pulled, sales, clicks):
@@ -57,9 +57,8 @@ class Items_UCB_Learner:
         self.n_arms = n_arms
         self.n_items = n_items
 
-
     def pull_prices(self):
-        idx = -1*np.ones(self.n_items)
+        idx = -1*np.ones(self.n_items, dtype=int)
         for i in range(self.n_items):
             idx[i] = self.learners[i].pull_arm()
         return idx
@@ -67,12 +66,3 @@ class Items_UCB_Learner:
     def update(self, day: Day):
         for i in range(self.n_items):
             self.learners[i].update(day.pulled_prices[i], clicks= day.individual_clicks[i], sales= day.individual_sales[i])
-### MAIN ###
-
-#items_learner
-
-#for t in range(T):
-#    day = Day()
-#    day.run_simulation()
-#    items_learner.update()
-#    new_price = items_learner.pull_prices()

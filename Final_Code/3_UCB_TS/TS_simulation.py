@@ -2,30 +2,10 @@ from Classes_fixed_params import *
 from TS import Items_TS_Learner
 import numpy as np
 import matplotlib.pyplot as plt
+from data_per_simulation_0 import data_dict
 
-matrix = np.array([[0.,   0.5,   0.5,   0.,    0.],
-                   [0.,   0.,    0.5,   0.5,   0.],
-                   [0.,   0.,    0.,    0.5,   0.5],
-                   [0.5,  0.,    0.,    0.,    0.5],
-                   [0.5,  0.5,   0.,    0.,    0.]])
-transition_prob_listofmatrix = [matrix for i in range(3)]
-vec = 100*np.ones(6)
-dir_params_listofvector = [vec for i in range(3)]
-pois_param_vector = [500 for i in range(3)]
-mat = np.array([[0.1,   0.1,  0.2,  0.3],
-                [0.5,   0.4,  0.3,  0.1],
-                [0.1,   0.4,  0.3,  0.1],
-                [0.5,   0.1,  0.1,  0.01],
-                [0.01,  0.7,  0.1,  0.3]])
-conversion_rate_listofmatrix = [mat for i in range(3)]
-margin_matrix = np.array([[10, 15, 20, 25],
-                          [30, 45, 50, 75],
-                          [30, 45, 60, 75],
-                          [1, 25, 60, 95],
-                          [1, 25, 50, 35]])
-
-env = Hyperparameters(transition_prob_listofmatrix,dir_params_listofvector, pois_param_vector, conversion_rate_listofmatrix, margin_matrix)
-
+env = Hyperparameters(data_dict["tr_prob"], data_dict["dir_par"], data_dict["pois_par"],
+                      data_dict["conv_rate"], data_dict["margin"])
 time_horizon = 200
 
 day_profit = []

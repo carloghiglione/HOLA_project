@@ -5,8 +5,7 @@ import copy
 
 
 class Hyperparameters:
-    def __init__(self, transition_prob_listofmatrix, dir_params_listofvector,
-                 pop_param_vector, conversion_rate_listofmatrix, margin_matrix):
+    def __init__(self, transition_prob_listofmatrix, dir_params_listofvector,pop_param_vector, conversion_rate_listofmatrix, margin_matrix):
         self.global_transition_prob = transition_prob_listofmatrix
         self.dir_params = dir_params_listofvector
         self.pop_param = pop_param_vector

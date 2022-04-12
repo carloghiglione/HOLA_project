@@ -1,6 +1,6 @@
 import numpy as np
 import copy
-from Classes import *
+from Classes_fixed_params import *
 
 class greedy:
     def __init__(self, env: Hyperparameters, init_profit, initial_prices):
@@ -10,7 +10,7 @@ class greedy:
         self.env=env
 
     def step(self):
-        greedy_profits= np.zeros(5)
+        greedy_profits= np.zeros(5,dtype=float)
         for i in range(5): #for every product we raise one price at a time
             new_prices = copy.deepcopy(self.prices)
             if new_prices[i] != 3:
@@ -21,7 +21,10 @@ class greedy:
             else:
                 greedy_profits[i]=self.current_profit
 
-        greedy_delta = np.diff(greedy_profits, np.ones(5) * self.current_profit)
+        greedy_delta=np.zeros(5,dtype=float)
+        for i in range(5):
+            greedy_delta[i]=greedy_profits[i]-self.current_profit
+
         if(np.max(greedy_delta) > 0):
             best_product = np.argmax(greedy_delta)
             self.prices[best_product] +=1

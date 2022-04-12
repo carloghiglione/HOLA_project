@@ -37,7 +37,7 @@ class UCB(Learner):
     def pull_arm(self):
         idx = np.argmax(
             (self.means + self.widths) * self.margins)  # I multiply everything by the prices, then returnt the max
-        return idx
+        return int(idx)
 
     def update(self, arm_pulled, sales, clicks):
         super().update(arm_pulled, sales, clicks)

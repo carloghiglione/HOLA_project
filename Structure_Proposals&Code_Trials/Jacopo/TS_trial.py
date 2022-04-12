@@ -45,7 +45,7 @@ class TS(Learner):
                                                   pulled_arm, 1] + clicks - sales  # update second param of beta
 
 
-class Item_TS_Learner:
+class Items_TS_Learner:
 
     def __init__(self, env: Hyperparameters, n_items=5, n_arms=4):
         self.env = env

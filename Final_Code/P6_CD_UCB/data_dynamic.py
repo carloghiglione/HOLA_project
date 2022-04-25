@@ -1,6 +1,6 @@
 import numpy as np
 
-time_phases = [100, 250]
+time_phases = [100, 200]
 matrix = np.array([[0.,   0.5,   0.5,   0.,    0.],
                    [0.,   0.,    0.5,   0.5,   0.],
                    [0.,   0.,    0.,    0.5,   0.5],
@@ -31,6 +31,11 @@ mat = np.array([[0.5,   0.4,  0.3,  0.1],
                 [0.4,   0.2,  0.1,  0.3]])
 conversion_rate_listofmatrix.append([mat for i in range(3)])
 
+# 1: 200 all
+# 2: 100 all,200 all
+# 3: no
+# 4: 200, all but 3
+# 5: 100 2, 200 1 2
 margin_matrix = np.array([[10, 15, 20, 25],
                           [30, 45, 50, 75],
                           [30, 45, 60, 75],

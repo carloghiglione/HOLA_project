@@ -44,7 +44,7 @@ class Daily_Website:
 
     def select_conversion_rates(self, conv_rates, prices, time, phases: np.array):
         ret = np.ndarray(shape=(3, 5))
-        n_phases = len(phases)+1
+        n_phases = len(phases)
 
         phase_big = [-1]
         for i in range(n_phases):

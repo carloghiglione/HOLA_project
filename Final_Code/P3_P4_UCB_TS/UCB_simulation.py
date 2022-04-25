@@ -1,8 +1,8 @@
 import sys
 sys.path.insert(0, '..')
 
-random_environment = True
-time_horizon = 50
+random_environment = False
+time_horizon = 100
 
 if random_environment:
     sys.stdout.write('\r' + str("Initializing random simulation environment"))
@@ -40,6 +40,9 @@ best_prices = np.array(best_prices, dtype=int)
 cl_profit = []
 sys.stdout.write('\r' + str("Beginning simulation") + '\n')
 
+
+cr = []
+
 for t in range(time_horizon):
     sys.stdout.write('\r' + "Simulation progress: " + f'{t * 100 / time_horizon} %')
     day = Day(env, day_prices)
@@ -50,6 +53,8 @@ for t in range(time_horizon):
     day_prices = learner.pull_prices()
 
     cl_profit.append(day.run_clairvoyant_simulation(best_prices))
+
+    cr.append(learner.learners[0].means[3])
 
 sys.stdout.flush()
 sys.stdout.write('\r' + str("Simulation completed under time horizon t = ") + str(time_horizon) + str(" days") + '\n')
@@ -73,3 +78,14 @@ plt.xlabel("time [day]")
 plt.ylabel("regret [euros]")
 plt.tight_layout()
 plt.show()
+
+
+#plt.figure(2)
+#plt.plot(np.diff(cr)[5:])
+#plt.title("CR")
+#plt.xlabel("time [day]")
+#plt.ylabel("CR")
+#plt.tight_layout()
+#plt.show()
+#
+#print(cr)

@@ -8,7 +8,7 @@ matrix = np.array([[0.,   0.5,   0.5,   0.,    0.],
 transition_prob_listofmatrix = [matrix for i in range(3)]
 vec = 100*np.ones(6)
 dir_params_listofvector = [vec for i in range(3)]
-pois_param_vector = [500 for i in range(3)]
+pois_param_vector = [10 for i in range(3)]
 mat = np.array([[0.1,   0.1,  0.2,  0.3],
                 [0.5,   0.4,  0.3,  0.1],
                 [0.1,   0.4,  0.3,  0.1],

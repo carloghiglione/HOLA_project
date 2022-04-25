@@ -5,7 +5,7 @@ time_horizon = 300
 
 sys.stdout.write('\r' + str("Initializing simulation environment"))
 from Classes_dynamic import *
-from UCB import Items_UCB_Learner
+from CD_UCB import Items_UCB_Learner
 import numpy as np
 import matplotlib.pyplot as plt
 from data_dynamic import data_dict

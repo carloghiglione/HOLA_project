@@ -1,4 +1,8 @@
 import numpy as np
+import sys
+sys.path.insert(0, '..')
+from P1_Base.MC_simulator import pull_prices
+from P1_Base.Classes_base import Hyperparameters
 
 class Learner:
 
@@ -29,13 +33,12 @@ class TS(Learner):
         super().__init__(n_arms)  # usa il costruttore di learner (super-class)
         self.env = env
         self.beta_parameters = np.ones((n_arms, 2))  # variable to store parameters of beta distributions for each arm
-        self.margins = env.global_margin[prod,:]
+        self.margins = env.global_margin[prod, :]
 
     # to select the arm to  pull
     # sample from betas of all the arms and find arm that sampled the maximum value
-    def pull_arm(self):
-        idx = np.argmax(np.random.beta(self.beta_parameters[:, 0], self.beta_parameters[:, 1])*self.margins)
-        return idx
+    def pull_cr(self):
+        return np.random.beta(self.beta_parameters[:, 0], self.beta_parameters[:, 1])
 
     def update(self, pulled_arm, sales, clicks):
         super().update(pulled_arm, sales, clicks)
@@ -52,11 +55,14 @@ class Items_TS_Learner:
         self.n_arms = n_arms
         self.n_items = n_items
 
-    def pull_prices(self):
-        idx = -1*np.ones(self.n_items, dtype=int)
-        for i in range(self.n_items):
-            idx[i] = self.learners[i].pull_arm()
-        return idx
+    def pull_prices(self, env: Hyperparameters, print_message, n_users_pt=100):
+        conv_rate = -1*np.ones(shape=(5, 4))
+        for i in range(5):
+            conv_rate[i, :] = self.learners[i].pull_cr()
+        prices, profits = pull_prices(env=env, conv_rates=conv_rate, alpha=env.dir_params, n_buy=env.mepp,
+                                      trans_prob=env.global_transition_prob, n_users_pt=n_users_pt,
+                                      print_message=print_message)
+        return prices
 
     def update(self, day):
         for i in range(self.n_items):

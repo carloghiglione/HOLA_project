@@ -2,7 +2,7 @@ import numpy as np
 import sys
 sys.path.insert(0, '..')
 from P1_Base.MC_simulator import pull_prices
-from P1_Base.Classes_base import Hyperparameters
+from P1_Base.Classes_base import Hyperparameters, Day
 
 class Learner:
 
@@ -54,17 +54,26 @@ class Items_TS_Learner:
         self.learners = [TS(env, i, n_arms) for i in range(n_items)]
         self.n_arms = n_arms
         self.n_items = n_items
+        self.dirichlet = np.zeros((n_items+1))
+        self.n_buys = np.zeros(n_items)
+        self.count = np.zeros(n_items)
+        self.total_buy = np.zeros(n_items)
 
     def pull_prices(self, env: Hyperparameters, print_message, n_users_pt=100):
         conv_rate = -1*np.ones(shape=(5, 4))
         for i in range(5):
             conv_rate[i, :] = self.learners[i].pull_cr()
-        prices = pull_prices(env=env, conv_rates=conv_rate, alpha=env.dir_params, n_buy=env.mepp,
-                                      trans_prob=env.global_transition_prob, n_users_pt=n_users_pt,
-                                      print_message=print_message)
+        prices = pull_prices(env=env, conv_rates=conv_rate, alpha=self.dirichlet, n_buy=self.n_buys,
+                             trans_prob=env.global_transition_prob, n_users_pt=n_users_pt, print_message=print_message)
         return prices
 
-    def update(self, day):
+    def update(self, day: Day):
         for i in range(self.n_items):
             self.learners[i].update(pulled_arm=day.pulled_prices[i],
                                     sales=day.individual_sales[i], clicks=day.individual_clicks[i])
+            self.total_buy[i] += day.items_sold[i]
+            self.count[i] += day.individual_sales[i]
+            self.n_buys[i] = (self.total_buy[i]/self.count[i]) - 1
+            self.dirichlet[i+1] += np.sum(day.n_users[:, i])
+        self.dirichlet[0] += np.max([0, np.sum(day.website.n_users) - np.sum(day.n_users)])
+

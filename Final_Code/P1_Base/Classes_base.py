@@ -57,7 +57,7 @@ class Daily_Website:
         for t in range(3):
             users = []
             total = 0
-            for i in range(4):
+            for i in range(5):
                 n_dirty = self.n_users[t] * self.alphas[t][i+1]
                 if (n_dirty % 1 > 0.5) and (total + mt.ceil(n_dirty) <= self.n_users[t]):
                     users.append(mt.ceil(n_dirty))
@@ -68,7 +68,6 @@ class Daily_Website:
                 else:
                     for j in range(25):
                         print("ERROR IN USER EXTRACTION")
-            users.append(int(self.n_users[t] - total))
             users_pp[t, :] = np.array(users, dtype=int)
         return users_pp
 

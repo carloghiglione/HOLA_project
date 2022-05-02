@@ -1,4 +1,8 @@
 import numpy as np
+import sys
+sys.path.insert(0, '..')
+from Classes_dynamic import Hyperparameters
+from P1_Base.MC_simulator import pull_prices
 
 class Learner_SW:
 
@@ -48,14 +52,16 @@ class UCB_SW(Learner_SW):
         self.win = win
 
     # to select the arms with highest upper confidence bound
-    def pull_arm(self):
-        idx = np.argmax(
-            (self.means + self.widths) * self.margins)  # I multiply everything by the prices, then return the max
-        return int(idx)
+    def pull_cr(self):
+        idx = np.array(self.means + self.widths, dtype=float)
+        for i in range(4):
+            if (idx[i] > 1) or (idx[i] == np.inf):
+                idx[i] = 1
+        return idx
 
     def update(self, arm_pulled, sales, clicks):
         super().update(arm_pulled, sales, clicks)
-          # update the mean of the arm we pulled
+        # update the mean of the arm we pulled
         for idx in range(self.n_arms):  # for all arms, update upper confidence bounds
             n = len(self.ages[idx])
             if n > 0:
@@ -73,11 +79,14 @@ class Items_UCB_Learner_SW:
         self.n_arms = n_arms
         self.n_items = n_items
 
-    def pull_prices(self):
-        idx = -1*np.ones(self.n_items, dtype=int)
-        for i in range(self.n_items):
-            idx[i] = self.learners[i].pull_arm()
-        return idx
+    def pull_prices(self, env: Hyperparameters, print_message, n_users_pt=100):
+        conv_rate = -1 * np.ones(shape=(5, 4))
+        for i in range(5):
+            conv_rate[i, :] = self.learners[i].pull_cr()
+        prices = pull_prices(env=env, conv_rates=conv_rate, alpha=env.dir_params, n_buy=env.mepp,
+                             trans_prob=env.global_transition_prob, n_users_pt=n_users_pt,
+                             print_message=print_message)
+        return prices
 
     def update(self, day):
         for i in range(self.n_items):

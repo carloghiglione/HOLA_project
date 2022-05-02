@@ -45,7 +45,7 @@ def pull_prices(env: Hyperparameters, conv_rates, alpha, n_buy, trans_prob, n_us
     if len(conv_rate) != 3:                          # if I am in the case with one class only
         conv_rate = [conv_rate for i in range(3)]
     if len(tran_prob) != 3:
-        trans_prob = [tran_prob for i in range(3)]
+        tran_prob = [tran_prob for i in range(3)]
     if len(alpha) != 3:
         alpha = [alpha for i in range(3)]
 

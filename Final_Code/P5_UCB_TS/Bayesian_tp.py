@@ -1,10 +1,8 @@
 import copy
-
 import numpy as np
-import sys
-sys.path.insert(0, '..')
 from P1_Base.MC_simulator import pull_prices
 from Classes_5 import Hyperparameters, Day
+
 
 class Bayesian_TP:
     def __init__(self, first: bool, lam: float):
@@ -22,6 +20,7 @@ class Bayesian_TP:
             if value > self.lam:
                 value = copy.deepcopy(self.lam)
         return value
+
 
 class Full_Bayesian_TP:
     def __init__(self, env: Hyperparameters):

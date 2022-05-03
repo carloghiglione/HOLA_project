@@ -1,8 +1,7 @@
 import numpy as np
-import sys
-sys.path.insert(0, '..')
 from P1_Base.MC_simulator import pull_prices
 from P1_Base.Classes_base import Hyperparameters
+
 
 class Learner:
 
@@ -46,8 +45,8 @@ class UCB(Learner):
 
     def update(self, arm_pulled, sales, clicks):
         super().update(arm_pulled, sales, clicks)
-        self.means[arm_pulled] = self.tot_sales[arm_pulled]/self.tot_clicks[arm_pulled]  # update the mean of the arm we pulled
-        for idx in range(self.n_arms):  # for all arms, update upper confidence bounds
+        self.means[arm_pulled] = self.tot_sales[arm_pulled]/self.tot_clicks[arm_pulled]
+        for idx in range(self.n_arms):
             n = self.tot_clicks[idx]
             if n > 0:
                 self.widths[idx] = self.c*np.sqrt(2 * np.log(self.t) / n)
@@ -76,9 +75,10 @@ class Items_UCB_Learner:
 
     def update(self, day):
         for i in range(self.n_items):
-            self.learners[i].update(day.pulled_prices[i], clicks=day.individual_clicks[i], sales=day.individual_sales[i])
+            self.learners[i].update(day.pulled_prices[i],
+                                    clicks=day.individual_clicks[i], sales=day.individual_sales[i])
             self.total_buy[i] += day.items_sold[i]
             self.count[i] += day.individual_sales[i]
-            self.n_buys[i] = (self.total_buy[i] / self.count[i]) - 1
-            self.dirichlet[i + 1] += np.sum(day.n_users[:, i])
+            self.n_buys[i] = (self.total_buy[i] / self.count[i])-1
+            self.dirichlet[i+1] += np.sum(day.n_users[:, i])
         self.dirichlet[0] += np.max([0, np.sum(day.website.n_users) - np.sum(day.n_users)])

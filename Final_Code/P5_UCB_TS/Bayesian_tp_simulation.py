@@ -1,10 +1,10 @@
 import copy
 import sys
-sys.path.insert(0, '..')
 
 n_user_cl = 1500
 time_horizon = 50
 n_users_MC = 250
+seed = 17021890
 
 sys.stdout.write('\r' + str("Initializing simulation environment"))
 from Classes_5 import *
@@ -18,6 +18,8 @@ env = Hyperparameters(data_dict["tr_prob"], data_dict["trans_order_matrix"], dat
                       data_dict["conv_rate"], data_dict["margin"], data_dict["lam"])
 
 sys.stdout.write(str(": Done") + '\n')
+
+np.random.seed(seed)
 
 day_profit = []
 day_normalized_profit = []

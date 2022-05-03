@@ -1,6 +1,4 @@
 import numpy as np
-import sys
-sys.path.insert(0, '..')
 from Classes_dynamic import Hyperparameters
 from P1_Base.MC_simulator import pull_prices
 from CUSUM import *

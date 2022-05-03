@@ -1,43 +1,33 @@
-import numpy as np
+import copy
 import sys
-sys.path.insert(0, '..')
 
-random_environment = False
-time_horizon = 100
-n_trials = 50
+n_user_cl = 1500
+time_horizon = 50
+n_users_MC = 250
+n_trials = 10
+seed = 17021890
 
-seed = 27011999
-np.random.seed(seed)
-
-if random_environment:
-    sys.stdout.write('\r' + str("Initializing random simulation environment"))
-    from P1_Base.Classes_random_parameters import *
-    from UCB import Items_UCB_Learner
-    import numpy as np
-    import matplotlib.pyplot as plt
-    from P1_Base.random_data import data_dict
-    env = Hyperparameters(data_dict["tr_prob"], data_dict["dir_hpar"], data_dict["dir_poi"],
-                          data_dict["pois_poi"], data_dict["conv_rate"], data_dict["margin"])
-
-else:
-    sys.stdout.write('\r' + str("Initializing simulation environment"))
-    from P1_Base.Classes_base import *
-    from UCB import Items_UCB_Learner
-    import numpy as np
-    import matplotlib.pyplot as plt
-    from P1_Base.data_base import data_dict
-    env = Hyperparameters(data_dict["tr_prob"], data_dict["dir_par"], data_dict["pois_par"],
-                          data_dict["conv_rate"], data_dict["margin"])
+sys.stdout.write('\r' + str("Initializing simulation environment"))
+from P1_Base.Classes_base import *
+from UCB import Items_UCB_Learner
+from P1_Base.MC_simulator import pull_prices
+import numpy as np
+import matplotlib.pyplot as plt
+from P1_Base.data_base import data_dict
+env = Hyperparameters(data_dict["tr_prob"], data_dict["dir_par"], data_dict["pois_par"],
+                      data_dict["conv_rate"], data_dict["margin"])
 
 sys.stdout.write(str(": Done") + '\n')
 
+np.random.seed(seed)
 
-best_prices = np.zeros(5, dtype=int)
-for i in range(5):
-    best_prices[i] = np.argmax(env.global_margin[i, :] * (env.global_conversion_rate[0][i, :] * env.pois_param[0] +
-                                                          env.global_conversion_rate[1][i, :] * env.pois_param[1] +
-                                                          env.global_conversion_rate[2][i, :] * env.pois_param[2]))
-best_prices = np.array(best_prices, dtype=int)
+printer = str(('\r' + str("Finding Clairvoyant solution")))
+best_prices = pull_prices(env=copy.deepcopy(env), conv_rates=copy.deepcopy(env.global_conversion_rate),
+                          alpha=copy.deepcopy(env.dir_params), n_buy=copy.deepcopy(env.mepp),
+                          trans_prob=copy.deepcopy(env.global_transition_prob), n_users_pt=n_user_cl,
+                          print_message=printer)
+sys.stdout.write('\r' + str("Finding Clairvoyant solution: Done") + '\n')
+print(f'Clairvoyant price configuration: {best_prices}')
 
 profits = []
 profits_cl = []
@@ -54,33 +44,39 @@ for sim in range(n_trials):
     sys.stdout.write('\r' + str("Beginning simulation n.") + str(sim+1) + '\n')
 
     for t in range(time_horizon):
-        sys.stdout.write('\r' + "Simulation n." + str(sim+1) + ": " + f'{t * 100 / time_horizon} %')
-        day = Day(env, day_prices)
+        print_message = str('\r' + "Simulation n." + str(sim + 1) + ": " + f'{t * 100 / time_horizon} %')
+        day = Day(copy.deepcopy(env), day_prices)
         day.run_simulation()
         day_profit.append(day.profit)
-        day_profit_per_prod.append(day.items_sold*day.website.margin)
         learner.update(day)
-        day_prices = learner.pull_prices()
-
+        day_prices = learner.pull_prices(copy.deepcopy(env), print_message, n_users_pt=n_users_MC)
         cl_profit.append(day.run_clairvoyant_simulation(best_prices))
 
     sys.stdout.write('\r' + "Simulation n." + str(sim + 1) + ": 100%" + '\n')
     sys.stdout.flush()
 
     final_prices.append(day_prices)
-    profits.append(day_profit)
-    profits_cl.append(cl_profit)
-    sys.stdout.write(
-        '\r' + str(
-            "Simulation n." + str(sim + 1) + " completed, " + f'final price configuration: {final_prices[sim]}' + '\n'))
 
+    day_profit = np.array(day_profit)
+    cl_profit = np.array(cl_profit)
+    cl_profit.reshape(time_horizon)
 
+    profits.append(copy.deepcopy(day_profit))
+    profits_cl.append(copy.deepcopy(cl_profit))
+    sys.stdout.write('\r' + str("Simulation n." + str(sim+1) + " completed, "
+                                + f'final price configuration: {final_prices[sim]}' + '\n'))
+
+profits = np.array(profits)
+# viene salvata come lista di vettori colonna, che una volta messo come matrice ha una dimensione extra,
+# è più semplice ridurre qui così non sfasiamo la struttura di un trial per riga
+profits = profits[:, :, 0]
 mean_prof = np.mean(profits, axis=0)
-mean_prof_cl = np.mean(profits_cl, axis=0)
+mean_prof_cl = np.mean(profits_cl)*np.ones(time_horizon)
+
 
 regret = []
 for i in range(n_trials):
-    regret.append(np.cumsum(np.array(profits_cl[i]) - np.array(profits[i])))
+    regret.append(np.cumsum(np.array(mean_prof_cl) - np.array(profits[i])))
 mean_reg = np.mean(regret, axis=0)
 sd_reg = np.std(regret, axis=0)
 

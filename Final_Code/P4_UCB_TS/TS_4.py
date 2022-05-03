@@ -1,8 +1,7 @@
 import numpy as np
-import sys
-sys.path.insert(0, '..')
 from P1_Base.MC_simulator import pull_prices
 from P1_Base.Classes_base import Hyperparameters, Day
+
 
 class Learner:
 
@@ -76,4 +75,3 @@ class Items_TS_Learner:
             self.n_buys[i] = (self.total_buy[i]/self.count[i]) - 1
             self.dirichlet[i+1] += np.sum(day.n_users[:, i])
         self.dirichlet[0] += np.max([0, np.sum(day.website.n_users) - np.sum(day.n_users)])
-

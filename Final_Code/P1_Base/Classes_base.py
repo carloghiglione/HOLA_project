@@ -102,7 +102,7 @@ class User:
     def simulate(self):
         self.new_primary(self.starting_product)
 
-    def checkout(self):
+    def checkout(self) -> float:
         singular_margin = 0
         for i in range(5):
             singular_margin = singular_margin + self.cart[i]*self.website.margin[i]
@@ -114,7 +114,7 @@ class Day:
         self.pulled_prices = prices.astype(int)
         self.env = g_web
         self.mepp = g_web.mepp
-        self.profit = 0
+        self.profit = 0.
         self.website = Daily_Website(g_web, self.pulled_prices)
         self.n_users = self.website.get_users_per_product_and_type()
         # n items sold per type of product
@@ -136,7 +136,7 @@ class Day:
                     self.individual_sales = [sum(x) for x in zip(self.individual_sales, user.products)]
                     self.individual_clicks = [sum(x) for x in zip(self.individual_clicks, user.clicked)]
 
-    def run_clairvoyant_simulation(self, best_prices):
+    def run_clairvoyant_simulation(self, best_prices) -> float:
         best_prices = best_prices.astype(int)
         best_website = Daily_Website(self.env, best_prices)
         profit = 0

@@ -1,8 +1,7 @@
 import numpy as np
-import sys
-sys.path.insert(0, '..')
 from P1_Base.MC_simulator import pull_prices
 from P1_Base.Classes_base import Hyperparameters
+
 
 class Learner:
 
@@ -46,7 +45,8 @@ class UCB(Learner):
 
     def update(self, arm_pulled, sales, clicks):
         super().update(arm_pulled, sales, clicks)
-        self.means[arm_pulled] = self.tot_sales[arm_pulled]/self.tot_clicks[arm_pulled]  # update the mean of the arm we pulled
+        # update the mean of the arm we pulled
+        self.means[arm_pulled] = self.tot_sales[arm_pulled]/self.tot_clicks[arm_pulled]
         for idx in range(self.n_arms):  # for all arms, update upper confidence bounds
             n = self.tot_clicks[idx]
             if n > 0:
@@ -56,6 +56,7 @@ class UCB(Learner):
 
 
 class Items_UCB_Learner:
+
     def __init__(self, env, n_items=5, n_arms=4, c=1):
         self.env = env
         self.learners = [UCB(env, i, n_arms, c) for i in range(n_items)]
@@ -66,11 +67,12 @@ class Items_UCB_Learner:
         conv_rate = -1 * np.ones(shape=(5, 4))
         for i in range(5):
             conv_rate[i, :] = self.learners[i].pull_cr()
-        prices = pull_prices(env=env, conv_rates=conv_rate, alpha=env.dir_params,n_buy=env.mepp,
-                                      trans_prob=env.global_transition_prob, n_users_pt=n_users_pt,
-                                      print_message=print_message)
+        prices = pull_prices(env=env, conv_rates=conv_rate, alpha=env.dir_params, n_buy=env.mepp,
+                             trans_prob=env.global_transition_prob, n_users_pt=n_users_pt,
+                             print_message=print_message)
         return prices
 
     def update(self, day):
         for i in range(self.n_items):
-            self.learners[i].update(day.pulled_prices[i], clicks=day.individual_clicks[i], sales=day.individual_sales[i])
+            self.learners[i].update(day.pulled_prices[i],
+                                    clicks=day.individual_clicks[i], sales=day.individual_sales[i])

@@ -2,8 +2,9 @@ import copy
 import sys
 
 n_user_cl = 1500
-time_horizon = 50
+time_horizon = 500
 n_users_MC = 250
+seed = 17021890
 
 sys.stdout.write('\r' + str("Initializing simulation environment"))
 from Classes_dynamic import *
@@ -16,6 +17,8 @@ env = Hyperparameters(data_dict["tr_prob"], data_dict["dir_par"], data_dict["poi
                       data_dict["conv_rate"], data_dict["margin"], data_dict["time_phases"])
 
 sys.stdout.write(str(": Done") + '\n')
+
+np.random.seed(seed)
 
 day_profit = []
 day_normalized_profit = []
@@ -32,7 +35,7 @@ for p in range(len(env.phases)+1):
                                  trans_prob=copy.deepcopy(env.global_transition_prob), n_users_pt=n_user_cl,
                                  print_message=printer)
 sys.stdout.write('\r' + str("Finding Clairvoyant solution: Done") + '\n')
-print(f'Clairvoyant price configuration: {best_prices}')
+print(f'Clairvoyant price configuration for each phase: {best_prices}')
 
 sys.stdout.write('\r' + str("Beginning simulation") + '\n')
 
@@ -80,7 +83,7 @@ else:
 plt.figure(0)
 plt.plot(day_profit, color='red')
 plt.plot(cl_line, color='blue')
-plt.legend(["UCB", "Optimal"], loc='best')
+plt.legend(["UCB", "Optimal-mean"], loc='best')
 plt.title("Profit - simulation")
 plt.xlabel("time [day]")
 plt.ylabel("profit [euros]")

@@ -35,25 +35,24 @@ def profit_puller(prices, MC_env: Hyperparameters, n_users_pt) -> float:
             visited = np.array([p1, p2])
 
             temp[1] = conv_rate[p2]*tran_prob[p1, p2]*temp[0]
+            prob_per_p1[p2] += temp[1] * (1 - prob_per_p1[p2])
 
             for p3 in np.delete(range(5), visited):
                 visited = np.array([p1, p2, p3])
 
                 temp[2] = conv_rate[p3]*tran_prob[p2, p3]*temp[1]
+                prob_per_p1[p3] += temp[2] * (1 - prob_per_p1[p3])
 
                 for p4 in np.delete(range(5), visited):
                     visited = np.array([p1, p2, p3, p4])
 
                     temp[3] = conv_rate[p4]*tran_prob[p3, p4]*temp[2]
+                    prob_per_p1[p4] += temp[3] * (1 - prob_per_p1[p4])
 
                     for p5 in np.delete(range(5), visited):
 
                         temp[4] = conv_rate[p5]*tran_prob[p4, p5]*temp[3]
-
-                        prob_per_p1[[p2, p3, p4, p5]] += temp[1:]*(1 - prob_per_p1[[p2, p3, p4, p5]])
-#                        order = [p1, p2, p3, p4, p5]
-#                        for l in range(4):
-#                            prob_per_p1[order[l + 1]] += temp[l + 1] * (1 - prob_per_p1[order[l + 1]])
+                        prob_per_p1[p5] += temp[4] * (1 - prob_per_p1[p5])
 
         prob_per_p1[p1] = conv_rate[p1]
         pur_prob += prob_per_p1*alphas[p1+1]

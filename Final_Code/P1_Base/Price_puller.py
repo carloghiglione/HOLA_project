@@ -21,35 +21,45 @@ def profit_puller(prices, MC_env: Hyperparameters, n_users_pt) -> float:
     alphas = (MC_daily.alphas[0] + MC_daily.alphas[1] + MC_daily.alphas[2]) / 3
     conv_rate = np.mean(MC_daily.conversion_rates, axis=0)
 
+    connectivity = np.zeros(shape=(5, 2), dtype=int)
+    for i in range(5):
+        connectivity[i, :] = np.array(np.where(tran_prob[i, :] > 0))
+
     pur_prob = np.zeros(5, dtype=float)
 
     temp = np.zeros(5, dtype=float)
 
+    all_prods = np.array([0, 1, 2, 3, 4])
+
     for p1 in range(5):
         visited = np.array([p1])
+        to_visit = np.delete(copy.deepcopy(all_prods), visited)
 
         temp[0] = conv_rate[p1]
         prob_per_p1 = np.zeros(5, dtype=float)
 
-        for p2 in np.delete(range(5), visited):
+        for p2 in np.intersect1d(connectivity[p1], to_visit):
             visited = np.array([p1, p2])
+            to_visit = np.delete(copy.deepcopy(all_prods), visited)
 
             temp[1] = conv_rate[p2]*tran_prob[p1, p2]*temp[0]
             prob_per_p1[p2] += temp[1] * (1 - prob_per_p1[p2])
 
-            for p3 in np.delete(range(5), visited):
+            for p3 in np.intersect1d(connectivity[p2], to_visit):
                 visited = np.array([p1, p2, p3])
+                to_visit = np.delete(copy.deepcopy(all_prods), visited)
 
                 temp[2] = conv_rate[p3]*tran_prob[p2, p3]*temp[1]
                 prob_per_p1[p3] += temp[2] * (1 - prob_per_p1[p3])
 
-                for p4 in np.delete(range(5), visited):
+                for p4 in np.intersect1d(connectivity[p3], to_visit):
                     visited = np.array([p1, p2, p3, p4])
+                    to_visit = np.delete(copy.deepcopy(all_prods), visited)
 
                     temp[3] = conv_rate[p4]*tran_prob[p3, p4]*temp[2]
                     prob_per_p1[p4] += temp[3] * (1 - prob_per_p1[p4])
 
-                    for p5 in np.delete(range(5), visited):
+                    for p5 in np.intersect1d(connectivity[p4], to_visit):
 
                         temp[4] = conv_rate[p5]*tran_prob[p4, p5]*temp[3]
                         prob_per_p1[p5] += temp[4] * (1 - prob_per_p1[p5])
@@ -116,64 +126,5 @@ def pull_prices(env: Hyperparameters, conv_rates, alpha, n_buy, trans_prob, n_us
     profits = np.array(profits, dtype=float)
     best = np.argmax(profits)
     return prices[best]
-
-
-#    for type_u in range(3):
-#        pur_prob_per_starting_prod = []
-#
-#        temp = np.zeros(5, dtype=float)
-#
-#        for p1 in range(5):
-#
-#            temp[0] = copy.deepcopy(MC_daily.conversion_rates[type_u, p1])
-#
-#            visited = np.array([p1])
-#
-#            prob_per_p1 = np.zeros(5, dtype=float)
-#
-#            for p2 in np.delete(range(5), visited):
-#                visited = np.array([p1, p2])
-#
-#                temp[1] = copy.deepcopy(MC_daily.conversion_rates[type_u, p2]) *\
-#                          copy.deepcopy(MC_daily.transition_prob[type_u][p1, p2]) * \
-#                          copy.deepcopy(temp[0])
-#
-#                for p3 in np.delete(range(5), visited):
-#                    visited = np.array([p1, p2, p3])
-#
-#                    temp[2] = copy.deepcopy(MC_daily.conversion_rates[type_u, p3]) * \
-#                              copy.deepcopy(MC_daily.transition_prob[type_u][p2, p3]) * \
-#                              copy.deepcopy(temp[1])
-#
-#                    for p4 in np.delete(range(5), visited):
-#                        visited = np.array([p1, p2, p3, p4])
-#
-#                        temp[3] = copy.deepcopy(MC_daily.conversion_rates[type_u, p4]) * \
-#                                  copy.deepcopy(MC_daily.transition_prob[type_u][p3, p4]) * \
-#                                  copy.deepcopy(temp[2])
-#
-#                        for p5 in np.delete(range(5), visited):
-#
-#                            temp[4] = copy.deepcopy(MC_daily.conversion_rates[type_u, p5]) * \
-#                                      copy.deepcopy(MC_daily.transition_prob[type_u][p4, p5]) * \
-#                                      copy.deepcopy(temp[3])
-#
-#                            order = [p1, p2, p3, p4, p5]
-#                            for i in range(4):
-#                                prob_per_p1[order[i + 1]] += temp[i + 1] * (1 - prob_per_p1[order[i + 1]])
-#
-#            prob_per_p1[p1] = copy.deepcopy(MC_daily.conversion_rates[type_u, p1])
-#            pur_prob_per_starting_prod.append(copy.deepcopy(prob_per_p1))
-#        pur_prob_type = np.zeros(5, dtype=float)
-#
-#        for starting_prod in range(5):
-#            pur_prob_type += pur_prob_per_starting_prod[starting_prod] * \
-#                             copy.deepcopy(MC_daily.alphas[type_u][starting_prod+1])
-#        pur_prob_per_type.append(copy.deepcopy(pur_prob_type))
-#
-#    pur_prob = np.zeros(5, dtype=float)
-#
-#    for i in range(3):
-#        pur_prob += pur_prob_per_type[i]/3
 
 

@@ -69,7 +69,7 @@ plt.tight_layout()
 plt.show()
 
 plt.figure(1)
-plt.plot(np.cumsum(np.array(cl_line) - np.array(day_profit)))
+plt.plot(np.cumsum(cl_mean - day_profit))
 plt.title("Regret in single simulation")
 plt.xlabel("time [day]")
 plt.ylabel("regret [euros]")

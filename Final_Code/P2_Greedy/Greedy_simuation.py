@@ -31,7 +31,7 @@ starting_prices = np.zeros(5,dtype=int)  # all prices start at minimum
 starting_day = Day(env, starting_prices)
 starting_day.run_simulation()
 
-g = Greedy(env, starting_day.profit, starting_prices, best_prices)
+g = Greedy(env, starting_day.profit/np.sum(starting_day.n_users), starting_prices, best_prices)
 count = 1
 while g.check_convergence == False:
     sys.stdout.write('\r' + "Running simulation: Step n." + str(count))
@@ -45,7 +45,8 @@ print("Best prices indexes by clairvoyant algorithm:", best_prices)
 
 day_profit = g.day_profits
 cl_profit = g.clairvoyant_profits
-cl_line = np.mean(cl_profit)*np.ones(len(cl_profit))
+cl_mean = np.mean(cl_profit)
+cl_line = cl_mean*np.ones(len(cl_profit))
 
 plt.figure(0)
 plt.plot(day_profit, color='red')
@@ -58,7 +59,7 @@ plt.tight_layout()
 plt.show()
 
 plt.figure(1)
-plt.plot(np.cumsum(np.array(cl_line) - np.array(day_profit)))
+plt.plot(np.cumsum(cl_mean - day_profit))
 plt.title("Regret in single simulation")
 plt.xlabel("time [day]")
 plt.ylabel("regret [euros]")

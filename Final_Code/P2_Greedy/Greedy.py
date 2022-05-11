@@ -22,7 +22,7 @@ class Greedy:
                 new_prices[i] += 1
                 day = Day(self.env, new_prices)
                 day.run_simulation()
-                greedy_profits[i] = day.profit
+                greedy_profits[i] = day.profit/np.sum(day.n_users) # normalized profit
                 self.day_profits.append(day.profit)
                 self.clairvoyant_profits.append(day.run_clairvoyant_simulation(self.best_prices))
             else:

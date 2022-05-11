@@ -11,13 +11,14 @@ from P1_Base.Classes_base import *
 #-n.ro acquisti
 #-transition prob.
 
-def profit_puller(prices, MC_env: Hyperparameters, n_users_pt) -> float:
+def profit_puller(prices, MC_env: Hyperparameters, n_users_pt, tr_prob) -> float:
 
     MC_daily = Daily_Website(MC_env, cdc(prices))
     MC_daily.n_users = [n_users_pt, n_users_pt, n_users_pt]
     MC_daily.alphas = np.array(MC_env.dir_params, dtype=float)/np.sum(MC_env.dir_params)
 
-    tran_prob = (MC_daily.transition_prob[0]+MC_daily.transition_prob[1]+MC_daily.transition_prob[2])/3
+    #tran_prob = (MC_daily.transition_prob[0]+MC_daily.transition_prob[1]+MC_daily.transition_prob[2])/3
+    tran_prob = tr_prob
     alphas = (MC_daily.alphas[0] + MC_daily.alphas[1] + MC_daily.alphas[2]) / 3
     conv_rate = np.mean(MC_daily.conversion_rates, axis=0)
 
@@ -100,6 +101,8 @@ def pull_prices(env: Hyperparameters, conv_rates, alpha, n_buy, trans_prob, n_us
 
     MC_env = Hyperparameters(tran_prob, alpha, envv.pois_param, conv_rate, envv.global_margin, n_buy)
 
+    tr_prob = (tran_prob[0]+tran_prob[1]+tran_prob[2])/3
+
     count = 0
     cc = 4**5
     prices = [-1*np.ones(5) for i in range(cc)]
@@ -117,7 +120,7 @@ def pull_prices(env: Hyperparameters, conv_rates, alpha, n_buy, trans_prob, n_us
                     sim_prices[3] = p4
                     for p5 in range(4):
                         sim_prices[4] = p5
-                        profits[count] = profit_puller(cdc(sim_prices), cdc(MC_env), n_users_pt)
+                        profits[count] = profit_puller(cdc(sim_prices), cdc(MC_env), n_users_pt, tr_prob)
                         prices[count] = cdc(sim_prices)
 
                         count += 1

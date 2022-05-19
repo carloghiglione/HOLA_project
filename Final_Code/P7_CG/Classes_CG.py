@@ -8,7 +8,7 @@ import copy
 #   •poisson parameters -> MEAN number of users for each type each day
 
 class Hyperparameters:
-    def __init__(self, transition_prob_listofmatrix, dir_params_listofvector, pois_param_vector, conversion_rate_listofmatrix, margin_matrix, feat_ass: np.array,mean_extra_purchases_per_product=2*np.ones(shape=5)):
+    def __init__(self, transition_prob_listofmatrix, dir_params_listofvector, pois_param_vector, conversion_rate_listofmatrix, margin_matrix, feat_ass: np.array,mean_extra_purchases_per_product=2*np.ones(shape=(3, ))):
         self.global_transition_prob = transition_prob_listofmatrix  # transition_prob[i,j] = prob that j is selected given i as primal, this econdes both selection probability and probability to see j
         self.dir_params = dir_params_listofvector  # vector with dirichlet parameters
         self.pois_param = pois_param_vector
@@ -80,14 +80,11 @@ class Daily_Website:
 
 
 class User:
-    def __init__(self, website: Daily_Website, starting_product, u_type, feats, mean_extra_purchases_per_product= None ):
+    def __init__(self, website: Daily_Website, starting_product, u_type, feats):
         self.website = website  # environment is the specific day website
         self.u_type = u_type
         self.features = feats
-        if mean_extra_purchases_per_product is None:
-            self.mepp = [2*np.ones(5, dtype=int) for _ in range(3)]
-        else:
-            self.mepp = mean_extra_purchases_per_product
+        self.mepp = website.env.mepp
         self.starting_product = starting_product
         self.products = [0 for i in range(5)]  # 1 if product has been bought, 0 if not
         self.clicked = [0 for i in range(5)]  # 1 if product has been clicked, 0 if not
@@ -103,7 +100,7 @@ class User:
 
         if buy:
             self.products[primary] = 1
-            how_much = npr.poisson(size=1, lam=self.mepp[primary])+1  # +1 since we know the user buys
+            how_much = npr.poisson(size=1, lam=self.mepp[self.u_type, primary])+1  # +1 since we know the user buys
             self.cart[primary] = how_much
             for j in range(5):
                 click = npr.binomial(n=1, size=1, p=self.dynamic_transition_prob[primary, j])

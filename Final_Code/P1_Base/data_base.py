@@ -1,10 +1,10 @@
 import numpy as np
 
-matrix = np.array([[0.,   0.1,   0.1,   0.,    0.],
-                   [0.,   0.,    0.1,   0.1,   0.],
-                   [0.,   0.,    0.,    0.1,   0.1],
-                   [0.1,  0.,    0.,    0.,    0.1],
-                   [0.1,  0.1,   0.,    0.,    0.]])
+matrix = np.array([[0.,   0.5,   0.5,   0.,    0.],
+                   [0.,   0.,    0.5,   0.5,   0.],
+                   [0.,   0.,    0.,    0.5,   0.5],
+                   [0.5,  0.,    0.,    0.,    0.5],
+                   [0.5,  0.5,   0.,    0.,    0.]])
 transition_prob_listofmatrix = [matrix for i in range(3)]
 vec = 100*np.ones(6)
 dir_params_listofvector = [vec for i in range(3)]

@@ -1,5 +1,5 @@
 import numpy as np
-from P1_Base.MC_simulator import pull_prices
+from P1_Base.Price_puller import pull_prices
 from P1_Base.Classes_base import Hyperparameters, Day
 
 
@@ -58,12 +58,12 @@ class Items_TS_Learner:
         self.count = np.zeros(n_items)
         self.total_buy = np.zeros(n_items)
 
-    def pull_prices(self, env: Hyperparameters, print_message, n_users_pt=100):
+    def pull_prices(self, env: Hyperparameters, print_message):
         conv_rate = -1*np.ones(shape=(5, 4))
         for i in range(5):
             conv_rate[i, :] = self.learners[i].pull_cr()
         prices = pull_prices(env=env, conv_rates=conv_rate, alpha=self.dirichlet, n_buy=self.n_buys,
-                             trans_prob=env.global_transition_prob, n_users_pt=n_users_pt, print_message=print_message)
+                             trans_prob=env.global_transition_prob, print_message=print_message)
         return prices
 
     def update(self, day: Day):

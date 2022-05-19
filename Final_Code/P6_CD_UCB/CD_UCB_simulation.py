@@ -1,15 +1,13 @@
 import copy
 import sys
 
-n_user_cl = 1500
-time_horizon = 500
-n_users_MC = 250
+time_horizon = 250
 seed = 17021890
 
 sys.stdout.write('\r' + str("Initializing simulation environment"))
 from Classes_dynamic import *
 from CD_UCB import Items_UCB_Learner
-from P1_Base.MC_simulator import pull_prices
+from P1_Base.Price_puller import pull_prices
 import numpy as np
 import matplotlib.pyplot as plt
 from data_dynamic import data_dict
@@ -32,8 +30,7 @@ for p in range(len(env.phases)+1):
     printer = str(('\r' + str("Finding Clairvoyant solution for phase ") + str(p+1)))
     best_prices[p] = pull_prices(env=copy.deepcopy(env), conv_rates=copy.deepcopy(env.global_conversion_rate[p]),
                                  alpha=copy.deepcopy(env.dir_params), n_buy=copy.deepcopy(env.mepp),
-                                 trans_prob=copy.deepcopy(env.global_transition_prob), n_users_pt=n_user_cl,
-                                 print_message=printer)
+                                 trans_prob=copy.deepcopy(env.global_transition_prob), print_message=printer)
 sys.stdout.write('\r' + str("Finding Clairvoyant solution: Done") + '\n')
 print(f'Clairvoyant price configuration for each phase: {best_prices}')
 
@@ -52,7 +49,7 @@ for t in range(time_horizon):
     day_normalized_profit.append(day.profit / np.sum(day.n_users))
     # day_profit_per_prod.append(np.array(day.items_sold*day.website.margin, dtype=float))
     learner.update(day)
-    day_prices = learner.pull_prices(copy.deepcopy(env), print_message, n_users_pt=n_users_MC)
+    day_prices = learner.pull_prices(copy.deepcopy(env), print_message)
 
     index = -1
     for i in range(len(env.phases) + 1):
@@ -68,15 +65,15 @@ cl_line = np.zeros(time_horizon)
 if len(env.phases) > 0:
     for i in range(len(env.phases)):
         if i == 0:
-            iw_mean = np.mean(cl_profit[:env.phases[i]])
-            cl_line[0:env.phases[i]] = iw_mean*np.ones(env.phases[i])
+            iw_mean = np.mean(cl_profit[0:env.phases[i]])
+            cl_line[0:env.phases[i]] = copy.deepcopy(iw_mean*np.ones(env.phases[i]))
         else:
             iw_mean = np.mean(cl_profit[env.phases[i-1]:env.phases[i]])
-            cl_line[env.phases[i-1]:env.phases[i]] = iw_mean * np.ones(env.phases[i] - env.phases[i-1])
+            cl_line[env.phases[i-1]:env.phases[i]] = copy.deepcopy(iw_mean * np.ones(env.phases[i] - env.phases[i-1]))
 
         if i == (len(env.phases)-1):
             iw_mean = np.mean(cl_profit[env.phases[i]:])
-            cl_line[env.phases[i]:] = iw_mean * np.ones(time_horizon - env.phases[i])
+            cl_line[env.phases[i]:] = copy.deepcopy(iw_mean * np.ones(time_horizon - env.phases[i]))
 else:
     cl_line = np.mean(cl_profit)*np.ones(time_horizon)
 

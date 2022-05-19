@@ -8,7 +8,7 @@ import copy
 #   •poisson parameters -> MEAN number of users for each type each day
 
 class Hyperparameters:
-    def __init__(self, transition_prob_listofmatrix, trans_order_matrix , dir_params_listofvector, pois_param_vector, conversion_rate_listofmatrix, margin_matrix, lam: float, mean_extra_purchases_per_product=2*np.ones(shape=5)):
+    def __init__(self, transition_prob_listofmatrix, trans_order_matrix , dir_params_listofvector, pois_param_vector, conversion_rate_listofmatrix, margin_matrix, lam: float, mean_extra_purchases_per_product=2*np.ones(shape=(3, 5))):
         self.global_transition_prob = transition_prob_listofmatrix  # transition_prob[i,j] = prob that j is selected given i as primal, this econdes both selection probability and probability to see j
         self.trans_order = trans_order_matrix #0 se non esiste, 1 se primo secondario, 2 se secondo secondario
         self.dir_params = dir_params_listofvector  # vector with dirichlet parameters
@@ -20,7 +20,7 @@ class Hyperparameters:
 
 
 class Daily_Website:
-    def __init__(self, env : Hyperparameters, pulled_prices):
+    def __init__(self, env: Hyperparameters, pulled_prices):
         self.transition_prob = env.global_transition_prob
         self.alphas = self.sample_user_partitions(env.dir_params)
         self.n_users = self.sample_n_users(env.pois_param)
@@ -29,6 +29,7 @@ class Daily_Website:
         self.conversion_rates = self.select_conversion_rates(env.global_conversion_rate, pulled_prices)
         self.margin = self.select_margins(env.global_margin, pulled_prices)
         self.trans_order = env.trans_order
+        self.env = env
 
     def sample_user_partitions(self, params):
         alphas = []
@@ -76,10 +77,10 @@ class Daily_Website:
 
 
 class User:
-    def __init__(self, website: Daily_Website, starting_product, u_type, mean_extra_purchases_per_product=2*np.ones(shape=5)):
+    def __init__(self, website: Daily_Website, starting_product, u_type):
         self.website = website  # environment is the specific day website
         self.u_type = u_type
-        self.mepp = mean_extra_purchases_per_product
+        self.mepp = website.env.mepp
         self.starting_product = starting_product
         self.products = [0 for i in range(5)]  # 1 if product has been bought, 0 if not
         self.clicked = [0 for i in range(5)]  # 1 if product has been clicked, 0 if not
@@ -99,7 +100,7 @@ class User:
 
         if buy:
             self.products[primary] = 1
-            how_much = npr.poisson(size=1, lam=self.mepp[primary])+1  # +1 since we know the user buys
+            how_much = npr.poisson(size=1, lam=self.mepp[self.u_type, primary])+1  # +1 since we know the user buys
             self.cart[primary] = how_much
             for j in range(5):
                 if self.trans_order[primary, j] > 0:
@@ -124,7 +125,6 @@ class Day:
     def __init__(self, g_web: Hyperparameters, prices):
         self.pulled_prices = prices.astype(int)
         self.env = g_web
-        self.mepp = g_web.mepp
         self.profit = 0
         self.website = Daily_Website(g_web, self.pulled_prices)
         self.n_users = self.website.get_users_per_product_and_type()
@@ -142,7 +142,7 @@ class Day:
         for t in range(3):
             for p in range(5):
                 for j in range(self.n_users[t, p]):
-                    user = User(self.website, p, t, self.mepp)
+                    user = User(self.website, p, t)
                     user.simulate()
                     self.profit = self.profit + user.checkout()
                     # self.items_sold = self.items_sold + user.cart elementwise

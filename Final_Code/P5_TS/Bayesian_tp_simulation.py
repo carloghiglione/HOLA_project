@@ -1,15 +1,13 @@
 import copy
 import sys
 
-n_user_cl = 1500
 time_horizon = 50
-n_users_MC = 250
 seed = 17021890
 
 sys.stdout.write('\r' + str("Initializing simulation environment"))
 from Classes_5 import *
 from Bayesian_tp import Full_Bayesian_TP
-from P1_Base.MC_simulator import pull_prices
+from P1_Base.Price_puller import pull_prices
 import numpy as np
 import matplotlib.pyplot as plt
 from data_5 import data_dict
@@ -29,7 +27,7 @@ learner = Full_Bayesian_TP(copy.deepcopy(env))
 printer = str(('\r' + str("Finding Clairvoyant solution")))
 best_prices = pull_prices(env=copy.deepcopy(env), conv_rates=copy.deepcopy(env.global_conversion_rate),
                           alpha=copy.deepcopy(env.dir_params), n_buy=copy.deepcopy(env.mepp),
-                          trans_prob=copy.deepcopy(env.global_transition_prob), n_users_pt=n_user_cl,
+                          trans_prob=copy.deepcopy(env.global_transition_prob),
                           print_message=printer)
 sys.stdout.write('\r' + str("Finding Clairvoyant solution: Done") + '\n')
 print(f'Clairvoyant price configuration: {best_prices}')
@@ -48,7 +46,7 @@ for t in range(time_horizon):
     day_normalized_profit.append(day.profit/np.sum(day.n_users))
     # day_profit_per_prod.append(np.array(day.items_sold*day.website.margin, dtype=float))
     learner.update(day)
-    day_prices = learner.pull_prices(copy.deepcopy(env), print_message, n_users_pt=n_users_MC)
+    day_prices = learner.pull_prices(copy.deepcopy(env), print_message)
     cl.append(day.run_clairvoyant_simulation(best_prices))
 
 sys.stdout.flush()

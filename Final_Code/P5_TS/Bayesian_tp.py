@@ -1,12 +1,12 @@
 import copy
 import numpy as np
-from P1_Base.MC_simulator import pull_prices
+from P1_Base.Price_puller import pull_prices
 from Classes_5 import Hyperparameters, Day
 
 
 class Bayesian_TP:
     def __init__(self, first: bool, lam: float):
-        self.param = np.array([1,1])
+        self.param = np.array([1, 1])
         self.first = first
         self.lam = lam
 
@@ -39,12 +39,12 @@ class Full_Bayesian_TP:
                 if self.trans_order[i, j] > 0:
                     self.learners[i][j].update(n_display=day.shows[i, j], n_clicks=day.cliks[i, j])
 
-    def pull_prices(self, env: Hyperparameters, print_message, n_users_pt=100):
+    def pull_prices(self, env: Hyperparameters, print_message):
         trans_prob = np.zeros(shape=(5, 5))
         for i in range(5):
             for j in range(5):
                 if self.trans_order[i, j] > 0:
                     trans_prob[i, j] = self.learners[i][j].pull_value()
         prices = pull_prices(env=env, conv_rates=env.global_conversion_rate, alpha=env.dir_params, n_buy=env.mepp,
-                             trans_prob=trans_prob, n_users_pt=n_users_pt, print_message=print_message)
+                             trans_prob=trans_prob, print_message=print_message)
         return prices

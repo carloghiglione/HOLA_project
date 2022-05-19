@@ -2,7 +2,7 @@ import copy
 import numpy as np
 import sys
 from copy import deepcopy as cdc
-from P1_Base.Classes_base import Hyperparameters
+from Classes_dynamic import Hyperparameters
 
 # SIMULATORE CON:
 # -conversion rates

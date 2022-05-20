@@ -3,7 +3,7 @@ import numpy.random as npr
 import math as mt
 import copy
 
-#Fixed parameters:
+# Fixed parameters:
 #   •dirichlet parameters for each user type -> AVERAGE partition of users amongst products
 #   •poisson parameters -> MEAN number of users for each type each day
 
@@ -35,7 +35,7 @@ class Daily_Website:
         return alphas
 
     def sample_n_users(self, params):
-        n_users = np.zeros(shape=(2,2), dtype=int)
+        n_users = np.zeros(shape=(2, 2), dtype=int)
         for f1 in range(2):
             for f2 in range(2):
                 n_users[f1, f2] = int(params[f1, f2]*0.9 + npr.poisson(lam=params[f1, f2]*0.1, size=1))
@@ -86,9 +86,9 @@ class User:
         self.features = feats
         self.mepp = website.env.mepp
         self.starting_product = starting_product
-        self.products = [0 for i in range(5)]  # 1 if product has been bought, 0 if not
-        self.clicked = [0 for i in range(5)]  # 1 if product has been clicked, 0 if not
-        self.cart = [0 for i in range(5)]  # n* elements per product
+        self.products = [0 for _ in range(5)]  # 1 if product has been bought, 0 if not
+        self.clicked = [0 for _ in range(5)]  # 1 if product has been clicked, 0 if not
+        self.cart = [0 for _ in range(5)]  # n* elements per product
         self.dynamic_transition_prob = copy.deepcopy(website.transition_prob[self.u_type])
 
     def new_primary(self, primary):

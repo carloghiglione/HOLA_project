@@ -135,6 +135,7 @@ def pull_prices(env: Hyperparameters, conv_rates, alpha, n_buy, trans_prob, prin
     best = np.argmax(profits)
     return prices[best]
 
+
 def optimal_profit_lb(env: Hyperparameters, conv_rates, alpha, n_buy, trans_prob, print_message="Simulating")\
         -> float:
     conv_rate = cdc(conv_rates)

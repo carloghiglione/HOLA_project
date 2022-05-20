@@ -2,14 +2,13 @@ import copy
 import sys
 
 time_horizon = 300
-n_users_MC = 250
 win = 70
 seed = 17021890
 
 sys.stdout.write('\r' + str("Initializing simulation environment"))
 from Classes_dynamic import *
 from UCB_SW import Items_UCB_Learner_SW
-from P1_Base.MC_simulator import pull_prices
+from P1_Base.Price_puller import pull_prices
 import numpy as np
 import matplotlib.pyplot as plt
 from data_dynamic import data_dict

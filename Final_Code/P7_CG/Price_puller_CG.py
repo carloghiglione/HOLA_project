@@ -135,7 +135,7 @@ def pull_prices(env: Hyperparameters, conv_rates, alpha, n_buy, trans_prob, prin
     best = np.argmax(profits)
     return prices[best]
 
-def profit_getter_max_lb(env: Hyperparameters, conv_rates, alpha, n_buy, trans_prob, print_message="Simulating")\
+def optimal_profit_lb(env: Hyperparameters, conv_rates, alpha, n_buy, trans_prob, print_message="Simulating")\
         -> float:
     conv_rate = cdc(conv_rates)
     tran_prob = cdc(trans_prob)
@@ -203,48 +203,3 @@ def profit_getter_max_lb(env: Hyperparameters, conv_rates, alpha, n_buy, trans_p
     profits = np.array(profits, dtype=float)
     best = np.argmax(profits)
     return profits[best]
-
-def profit_getter_lb_of_max(env: Hyperparameters, conv_rates_ub, conv_rates_lb, alpha, n_buy, trans_prob, print_message="Simulating")\
-        -> float:
-    which_best = pull_prices(env, conv_rates_ub, alpha, n_buy, trans_prob, print_message)
-    conv_rate = cdc(conv_rates_lb)
-    tran_prob = cdc(trans_prob)
-    if len(conv_rate) != 3:  # SE SONO PASSATI GLI STIMATORI E NON QUELLI VERI
-        for i in range(5):
-            for j in range(4):
-                if (conv_rate[i][j] > 1) or (np.isinf(conv_rate[i][j])):
-                    conv_rate[i][j] = 1
-    else:
-        conv_rate = (conv_rate[0] * env.pois_param[0] +
-                     conv_rate[1] * env.pois_param[1] +
-                     conv_rate[2] * env.pois_param[2]) / np.sum(env.pois_param)
-
-    if len(tran_prob) != 3:  # SE SONO PASSATI GLI STIMATORI E NON QUELLI VERI
-        for i in range(5):
-            for j in range(5):
-                if (tran_prob[i][j] > 1) or (np.isinf(tran_prob[i][j])):
-                    tran_prob[i][j] = 1
-        tr_prob = tran_prob
-    else:
-        tr_prob = (tran_prob[0] * env.pois_param[0] +
-                   tran_prob[1] * env.pois_param[1] +
-                   tran_prob[2] * env.pois_param[2]) / np.sum(env.pois_param)
-
-    if len(alpha) == 3:
-        alphas = np.array(env.dir_params, dtype=float) / np.sum(env.dir_params)
-        alphas = (alphas[0] * env.pois_param[0] +
-                  alphas[1] * env.pois_param[1] +
-                  alphas[2] * env.pois_param[2]) / np.sum(env.pois_param)
-    else:
-        alphas = alpha
-
-    if len(n_buy) == 3:
-        mepp = (env.mepp[0, :] * env.pois_param[0] +
-                env.mepp[1, :] * env.pois_param[1] +
-                env.mepp[2, :] * env.pois_param[2]) / np.sum(env.pois_param)
-    else:
-        mepp = n_buy
-
-    profit = profit_puller(prices=which_best, conv_rate_full=conv_rate,margins_full=env.global_margin,
-                           tran_prob=tr_prob,alphas=alphas, mepp=mepp)
-    return profit

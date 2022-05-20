@@ -1,11 +1,8 @@
 import copy
-
 import numpy as np
-from Price_puller_CG import pull_prices
+from Price_puller_CG import pull_prices, optimal_profit_lb
 from Classes_CG import Hyperparameters, Day
 
-#TODO SCRIVERE MU_GENERATOR, METTERE CONFIDENCE BOUND SU P
-# FEATURE 1 SULLE RIGHE
 
 class Learner:
 
@@ -62,7 +59,7 @@ class Items_UCB_Learner:
 
     def __init__(self, env, n_items=5, n_arms=4, c=1):
         self.env = env
-        self.learners = [UCB(n_arms, c) for i in range(n_items)]
+        self.learners = [UCB(n_arms, c) for _ in range(n_items)]
         self.n_arms = n_arms
         self.n_items = n_items
 
@@ -79,9 +76,10 @@ class Items_UCB_Learner:
             self.learners[i].update(pulled_prices[i],
                                     clicks=individual_clicks[i], sales=individual_sales[i])
 
+
 class CG_Learner:
 
-    def __init__(self, env, context_window=14, n_items=5, n_arms=4, c=1, ci_p = 1.64):
+    def __init__(self, env, context_window=14, n_items=5, n_arms=4, c=1, ci_p=1.64):
         self.env = env
         self.n_arms = n_arms
         self.n_items = n_items
@@ -107,11 +105,11 @@ class CG_Learner:
                 self.tot_click_per_type[fa][fb][:, day.pulled_prices[fa, fb, :]] += day.individual_clicks[fa, fb, :]
                 self.feature_counter[fa, fb] += np.sum(day.n_users[fa, fb, :])
 
-        for l in self.learners:
+        for lea in self.learners:
             for i in range(5):
-                l.learners[i].t = copy.deepcopy(self.t)
+                lea.learners[i].t = copy.deepcopy(self.t)
 
-        if self.t%self.context_window == 0:
+        if self.t % self.context_window == 0:
             self.generate_context()
 
     def generate_context(self):
@@ -126,10 +124,10 @@ class CG_Learner:
         p_hat_a_0 = p_hat_a_0 - self.ci_p * np.sqrt(p_hat_a_0 * (1 - p_hat_a_0) / np.sum(self.feature_counter))
         p_hat_a_1 = p_hat_a_1 - self.ci_p * np.sqrt(p_hat_a_1 * (1 - p_hat_a_1) / np.sum(self.feature_counter))
 
-        mu_hat_a_0 = profit_getter()
-        mu_hat_a_1 = profit_getter()
+        mu_hat_a_0 = self.profit_getter(a=0, print_message="Evaluating context fa=0: ")
+        mu_hat_a_1 = self.profit_getter(a=1, print_message="Evaluating context fa=1: ")
 
-        mu_hat_nosplit = profit_getter()
+        mu_hat_nosplit = self.profit_getter(a=1, print_message="Evaluating full context: ")
 
         if p_hat_a_0*mu_hat_a_0 + p_hat_a_1*mu_hat_a_1 >= mu_hat_nosplit:
             split_a = True
@@ -141,10 +139,10 @@ class CG_Learner:
             p_hat_b_0 = p_hat_b_0 - self.ci_p * np.sqrt(p_hat_b_0 * (1 - p_hat_b_0) / np.sum(self.feature_counter))
             p_hat_b_1 = p_hat_b_1 - self.ci_p * np.sqrt(p_hat_b_1 * (1 - p_hat_b_1) / np.sum(self.feature_counter))
 
-            mu_hat_b_0 = profit_getter()
-            mu_hat_b_1 = profit_getter()
+            mu_hat_b_0 = self.profit_getter(b=0, print_message="Evaluating context fb=0: ")
+            mu_hat_b_1 = self.profit_getter(b=1, print_message="Evaluating context fb=1: ")
 
-            mu_hat_nosplit = profit_getter()
+            # if we do not split we can use same mu_hat_nosplit as before
 
             if p_hat_b_0 * mu_hat_b_0 + p_hat_b_1 * mu_hat_b_1 >= mu_hat_nosplit:
                 split_b = True
@@ -177,7 +175,7 @@ class CG_Learner:
                         self.learners[lear].update(prices, individual_clicks=clicks_mat[:, prices],
                                                    individual_sales=sales_mat[:, prices])
 
-        #if we split fa
+        # if we split fa
         else:
             p_hat_a0_b0 = np.sum(self.feature_counter[0, 0]) / np.sum(self.feature_counter[0, :])
             p_hat_a0_b1 = np.sum(self.feature_counter[0, 1]) / np.sum(self.feature_counter[0, :])
@@ -187,12 +185,12 @@ class CG_Learner:
             p_hat_a0_b1 = p_hat_a0_b1 - self.ci_p * np.sqrt(p_hat_a0_b1 * (1 - p_hat_a0_b1) /
                                                             np.sum(self.feature_counter[0, :]))
 
-            mu_hat_a0_b0 = profit_getter()
-            mu_hat_a0_b1 = profit_getter()
+            mu_hat_a0_b0 = self.profit_getter(a=0, b=0, print_message="Evaluating context fa=0, fb=0: ")
+            mu_hat_a0_b1 = self.profit_getter(a=0, b=1, print_message="Evaluating context fa=0, fb=1: ")
 
-            mu_hat_nosplit = profit_getter()
+            # if we do not split we can use mu_hat_a_0
 
-            if p_hat_a0_b0 * mu_hat_a0_b0 + p_hat_a0_b1 * mu_hat_a0_b1 >= mu_hat_nosplit:
+            if p_hat_a0_b0 * mu_hat_a0_b0 + p_hat_a0_b1 * mu_hat_a0_b1 >= mu_hat_a_0:
                 split_a0_b = True
 
             p_hat_a1_b0 = np.sum(self.feature_counter[1, 0]) / np.sum(self.feature_counter[1, :])
@@ -203,12 +201,12 @@ class CG_Learner:
             p_hat_a1_b1 = p_hat_a1_b1 - self.ci_p * np.sqrt(p_hat_a1_b1 * (1 - p_hat_a1_b1) /
                                                             np.sum(self.feature_counter[1, :]))
 
-            mu_hat_a1_b0 = profit_getter()
-            mu_hat_a1_b1 = profit_getter()
+            mu_hat_a1_b0 = self.profit_getter(a=1, b=0, print_message="Evaluating context fa=1, fb=0: ")
+            mu_hat_a1_b1 = self.profit_getter(a=1, b=1, print_message="Evaluating context fa=1, fb=1: ")
 
-            mu_hat_nosplit = profit_getter()
+            # if we do not split we can use mu_hat_a_1
 
-            if p_hat_a1_b0 * mu_hat_a1_b0 + p_hat_a1_b1 * mu_hat_a1_b1 >= mu_hat_nosplit:
+            if p_hat_a1_b0 * mu_hat_a1_b0 + p_hat_a1_b1 * mu_hat_a1_b1 >= mu_hat_a_1:
                 split_a1_b = True
 
             if not split_a0_b and not split_a1_b:
@@ -247,7 +245,7 @@ class CG_Learner:
                 for i in range(4):
                     prices = i * np.ones(5, dtype=int)
                     self.learners[2].update(prices, individual_clicks=clicks_mat[:, prices],
-                                               individual_sales=sales_mat[:, prices])
+                                            individual_sales=sales_mat[:, prices])
 
             elif not split_a0_b and split_a1_b:
                 self.ass_matrix = np.zeros(shape=(2, 2), dtype=int)
@@ -270,7 +268,7 @@ class CG_Learner:
                 for i in range(4):
                     prices = i * np.ones(5, dtype=int)
                     self.learners[0].update(prices, individual_clicks=clicks_mat[:, prices],
-                                               individual_sales=sales_mat[:, prices])
+                                            individual_sales=sales_mat[:, prices])
 
             else:
                 self.ass_matrix = np.zeros(shape=(2, 2), dtype=int)
@@ -289,20 +287,47 @@ class CG_Learner:
                                             individual_sales=self.tot_buy_per_type[1][0][:, prices])
                     self.learners[3].update(prices, individual_clicks=self.tot_click_per_type[1][1][:, prices],
                                             individual_sales=self.tot_buy_per_type[1][1][:, prices])
-        for l in self.learners:
+        for lea in self.learners:
             for i in range(5):
-                l.learners[i].t = copy.deepcopy(self.t)
+                lea.learners[i].t = copy.deepcopy(self.t)
 
     def pull_prices(self, print_message):
         ret = -1*np.ones(shape=(2, 2, 5), dtype=int)
         prices_from_lear = []
-        for l in self.learners:
-            prices_from_lear.append(l.pull_prices(self.env, print_message))
+        for lea in self.learners:
+            prices_from_lear.append(lea.pull_prices(self.env, print_message))
         for f1 in range(2):
             for f2 in range(2):
                 ret[f1, f2, :] = prices_from_lear[self.ass_matrix[f1, f2]]
         return ret
 
+    def profit_getter(self, a=2, b=2, print_message="Partitioning: "):
+        tot_click = np.zeros(shape=(5, 4), dtype=int)
+        tot_buy = np.zeros(shape=(5, 4), dtype=int)
+        if a == 2:
+            if b == 2:
+                for f1 in range(2):
+                    for f2 in range(2):
+                        tot_click += self.tot_click_per_type[f1][f2]
+                        tot_buy += self.tot_buy_per_type[f1][f2]
+            else:
+                for f1 in range(2):
+                    tot_click += self.tot_click_per_type[f1][b]
+                    tot_buy += self.tot_buy_per_type[f1][b]
+        else:
+            if b == 2:
+                for f2 in range(2):
+                    tot_click += self.tot_click_per_type[a][f2]
+                    tot_buy += self.tot_buy_per_type[a][f2]
+            else:
+                tot_click += self.tot_click_per_type[a][b]
+                tot_buy += self.tot_buy_per_type[a][b]
 
-
-
+        conv_rate = np.zeros(shape=(5, 4), dtype=float)
+        for prod in range(5):
+            for price in range(4):
+                temp = (tot_buy[prod, price]/tot_click[prod, price]) - np.sqrt(2*np.log(self.t)/tot_click[prod, price])
+                conv_rate[prod, price] = np.max([0, temp])
+        prof = optimal_profit_lb(env=self.env, conv_rates=conv_rate, alpha=self.env.dir_params, n_buy=self.env.mepp,
+                                 trans_prob=self.env.global_transition_prob, print_message=print_message)
+        return prof

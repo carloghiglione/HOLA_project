@@ -139,7 +139,7 @@ class Day:
                 for p in range(5):
                     for j in range(self.n_users[f1, f2, p]):
                         true_type = self.env.feature_associator[f1, f2]
-                        user = User(self.website, p, true_type, (f1, f2), self.mepp[true_type])
+                        user = User(website=self.website, starting_product=p, u_type=true_type, feats=(f1, f2))
                         user.simulate()
                         self.profit = self.profit + user.checkout()
                         # self.items_sold = self.items_sold + user.cart elementwise
@@ -156,7 +156,7 @@ class Day:
                 for p in range(5):
                     for j in range(self.n_users[f1, f2, p]):
                         true_type = self.env.feature_associator[f1, f2]
-                        user = User(best_website, p, true_type, (f1, f2), self.mepp[true_type])
+                        user = User(website=best_website, starting_product=p, u_type=true_type, feats=(f1, f2))
                         user.simulate()
                         profit = profit + user.checkout()
         return profit

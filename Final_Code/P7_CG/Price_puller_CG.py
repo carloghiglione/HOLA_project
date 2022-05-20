@@ -2,7 +2,7 @@ import copy
 import numpy as np
 import sys
 from copy import deepcopy as cdc
-from Classes_CG import Hyperparameters, Daily_Website
+from Classes_CG import Hyperparameters
 
 # SIMULATORE CON:
 # -conversion rates
@@ -11,20 +11,16 @@ from Classes_CG import Hyperparameters, Daily_Website
 # -transition prob.
 
 
-def profit_puller(prices, env: Hyperparameters, n_users_pt, tr_prob) -> float:
+def profit_puller(prices, conv_rate_full, margins_full, tran_prob, alphas, mepp) -> float:
 
-    env_daily = Daily_Website(env, cdc(prices))
-    env_daily.n_users = [n_users_pt, n_users_pt, n_users_pt]
-    env_daily.alphas = np.array(env.dir_params, dtype=float)/np.sum(env.dir_params)
-
-    # tran_prob = (MC_daily.transition_prob[0]+MC_daily.transition_prob[1]+MC_daily.transition_prob[2])/3
-    tran_prob = tr_prob
-    alphas = (env_daily.alphas[0] + env_daily.alphas[1] + env_daily.alphas[2]) / 3
-    conv_rate = np.mean(env_daily.conversion_rates, axis=0)
-
+    conv_rate = np.zeros(shape=5, dtype=float)
+    margin = np.zeros(shape=5, dtype=float)
     connectivity = np.zeros(shape=(5, 2), dtype=int)
-    for i in range(5):
-        connectivity[i, :] = np.array(np.where(tran_prob[i, :] > 0))
+
+    for j in range(5):
+        conv_rate[j] = conv_rate_full[j, prices[j]]
+        margin[j] = margins_full[j, prices[j]]
+        connectivity[j, :] = np.array(np.where(tran_prob[j, :] > 0))
 
     pur_prob = np.zeros(5, dtype=float)
 
@@ -65,39 +61,50 @@ def profit_puller(prices, env: Hyperparameters, n_users_pt, tr_prob) -> float:
                         prob_per_p1[p5] += conv_rate[p5]*tran_prob[p4, p5]*click_in_chain[p4]*(1 - prob_per_p1[p5])
 
         prob_per_p1[p1] = conv_rate[p1]
-        pur_prob += prob_per_p1*alphas[p1+1]
-    profit = float(np.sum(pur_prob*env_daily.margin*(1.0 + env.mepp)))
+        pur_prob += prob_per_p1*(alphas[p1+1])
+    profit = float(np.sum(pur_prob*margin*(1.0 + mepp)))
 
     return profit
 
 
-def pull_prices(env: Hyperparameters, conv_rates, alpha, n_buy, trans_prob, n_users_pt=100, print_message="Simulating")\
-        -> np.array:
+def pull_prices(env: Hyperparameters, conv_rates, alpha, n_buy, trans_prob, print_message="Simulating") -> np.array:
     conv_rate = cdc(conv_rates)
     tran_prob = cdc(trans_prob)
-    envv = cdc(env)
     if len(conv_rate) != 3:  # SE SONO PASSATI GLI STIMATORI E NON QUELLI VERI
         for i in range(5):
             for j in range(4):
                 if (conv_rate[i][j] > 1) or (np.isinf(conv_rate[i][j])):
                     conv_rate[i][j] = 1
+    else:
+        conv_rate = (conv_rate[0] * env.pois_param[0] +
+                     conv_rate[1] * env.pois_param[1] +
+                     conv_rate[2] * env.pois_param[2]) / np.sum(env.pois_param)
 
     if len(tran_prob) != 3:  # SE SONO PASSATI GLI STIMATORI E NON QUELLI VERI
         for i in range(5):
             for j in range(5):
                 if (tran_prob[i][j] > 1) or (np.isinf(tran_prob[i][j])):
                     tran_prob[i][j] = 1
+        tr_prob = tran_prob
+    else:
+        tr_prob = (tran_prob[0]*env.pois_param[0] +
+                   tran_prob[1]*env.pois_param[1] +
+                   tran_prob[2]*env.pois_param[2]) / np.sum(env.pois_param)
 
-    if len(conv_rate) != 3:                          # if I am in the case with one class only
-        conv_rate = [conv_rate for _ in range(3)]
-    if len(tran_prob) != 3:
-        tran_prob = [tran_prob for _ in range(3)]
-    if len(alpha) != 3:
-        alpha = [alpha for _ in range(3)]
+    if len(alpha) == 3:
+        alphas = np.array(env.dir_params, dtype=float) / np.sum(env.dir_params)
+        alphas = (alphas[0] * env.pois_param[0] +
+                  alphas[1] * env.pois_param[1] +
+                  alphas[2] * env.pois_param[2]) / np.sum(env.pois_param)
+    else:
+        alphas = alpha
 
-    env = Hyperparameters(tran_prob, alpha, envv.pois_param, conv_rate, envv.global_margin, n_buy)
-
-    tr_prob = (tran_prob[0]+tran_prob[1]+tran_prob[2])/3
+    if len(n_buy) == 3:
+        mepp = (env.mepp[0, :] * env.pois_param[0] +
+                env.mepp[1, :] * env.pois_param[1] +
+                env.mepp[2, :] * env.pois_param[2]) / np.sum(env.pois_param)
+    else:
+        mepp = n_buy
 
     count = 0
     cc = 4**5
@@ -116,12 +123,128 @@ def pull_prices(env: Hyperparameters, conv_rates, alpha, n_buy, trans_prob, n_us
                     sim_prices[3] = p4
                     for p5 in range(4):
                         sim_prices[4] = p5
-                        profits[count] = profit_puller(sim_prices, cdc(env), n_users_pt, tr_prob)
+                        profits[count] = profit_puller(prices=sim_prices, conv_rate_full=conv_rate,
+                                                       margins_full=env.global_margin, tran_prob=tr_prob,
+                                                       alphas=alphas, mepp=mepp)
                         prices[count] = cdc(sim_prices)
 
                         count += 1
                     sys.stdout.write('\r' + print_message + str(", pulling prices: ") + f'{count * 100 / cc} %')
-
+    sys.stdout.write('\r' + print_message + str(", pulling prices: 100%"))
     profits = np.array(profits, dtype=float)
     best = np.argmax(profits)
     return prices[best]
+
+def profit_getter_max_lb(env: Hyperparameters, conv_rates, alpha, n_buy, trans_prob, print_message="Simulating")\
+        -> float:
+    conv_rate = cdc(conv_rates)
+    tran_prob = cdc(trans_prob)
+    if len(conv_rate) != 3:  # SE SONO PASSATI GLI STIMATORI E NON QUELLI VERI
+        for i in range(5):
+            for j in range(4):
+                if (conv_rate[i][j] > 1) or (np.isinf(conv_rate[i][j])):
+                    conv_rate[i][j] = 1
+    else:
+        conv_rate = (conv_rate[0] * env.pois_param[0] +
+                     conv_rate[1] * env.pois_param[1] +
+                     conv_rate[2] * env.pois_param[2]) / np.sum(env.pois_param)
+
+    if len(tran_prob) != 3:  # SE SONO PASSATI GLI STIMATORI E NON QUELLI VERI
+        for i in range(5):
+            for j in range(5):
+                if (tran_prob[i][j] > 1) or (np.isinf(tran_prob[i][j])):
+                    tran_prob[i][j] = 1
+        tr_prob = tran_prob
+    else:
+        tr_prob = (tran_prob[0]*env.pois_param[0] +
+                   tran_prob[1]*env.pois_param[1] +
+                   tran_prob[2]*env.pois_param[2]) / np.sum(env.pois_param)
+
+    if len(alpha) == 3:
+        alphas = np.array(env.dir_params, dtype=float) / np.sum(env.dir_params)
+        alphas = (alphas[0] * env.pois_param[0] +
+                  alphas[1] * env.pois_param[1] +
+                  alphas[2] * env.pois_param[2]) / np.sum(env.pois_param)
+    else:
+        alphas = alpha
+
+    if len(n_buy) == 3:
+        mepp = (env.mepp[0, :] * env.pois_param[0] +
+                env.mepp[1, :] * env.pois_param[1] +
+                env.mepp[2, :] * env.pois_param[2]) / np.sum(env.pois_param)
+    else:
+        mepp = n_buy
+
+    count = 0
+    cc = 4**5
+    prices = [-1*np.ones(5) for _ in range(cc)]
+    profits = np.zeros(cc, dtype=int)
+
+    sim_prices = np.zeros(5, dtype=int)
+
+    for p1 in range(4):
+        sim_prices[0] = p1
+        for p2 in range(4):
+            sim_prices[1] = p2
+            for p3 in range(4):
+                sim_prices[2] = p3
+                for p4 in range(4):
+                    sim_prices[3] = p4
+                    for p5 in range(4):
+                        sim_prices[4] = p5
+                        profits[count] = profit_puller(prices=sim_prices, conv_rate_full=conv_rate,
+                                                       margins_full=env.global_margin, tran_prob=tr_prob,
+                                                       alphas=alphas, mepp=mepp)
+                        prices[count] = cdc(sim_prices)
+
+                        count += 1
+                    sys.stdout.write('\r' + print_message + str(", pulling prices: ") + f'{count * 100 / cc} %')
+    sys.stdout.write('\r' + print_message + str(", pulling prices: 100%"))
+    profits = np.array(profits, dtype=float)
+    best = np.argmax(profits)
+    return profits[best]
+
+def profit_getter_lb_of_max(env: Hyperparameters, conv_rates_ub, conv_rates_lb, alpha, n_buy, trans_prob, print_message="Simulating")\
+        -> float:
+    which_best = pull_prices(env, conv_rates_ub, alpha, n_buy, trans_prob, print_message)
+    conv_rate = cdc(conv_rates_lb)
+    tran_prob = cdc(trans_prob)
+    if len(conv_rate) != 3:  # SE SONO PASSATI GLI STIMATORI E NON QUELLI VERI
+        for i in range(5):
+            for j in range(4):
+                if (conv_rate[i][j] > 1) or (np.isinf(conv_rate[i][j])):
+                    conv_rate[i][j] = 1
+    else:
+        conv_rate = (conv_rate[0] * env.pois_param[0] +
+                     conv_rate[1] * env.pois_param[1] +
+                     conv_rate[2] * env.pois_param[2]) / np.sum(env.pois_param)
+
+    if len(tran_prob) != 3:  # SE SONO PASSATI GLI STIMATORI E NON QUELLI VERI
+        for i in range(5):
+            for j in range(5):
+                if (tran_prob[i][j] > 1) or (np.isinf(tran_prob[i][j])):
+                    tran_prob[i][j] = 1
+        tr_prob = tran_prob
+    else:
+        tr_prob = (tran_prob[0] * env.pois_param[0] +
+                   tran_prob[1] * env.pois_param[1] +
+                   tran_prob[2] * env.pois_param[2]) / np.sum(env.pois_param)
+
+    if len(alpha) == 3:
+        alphas = np.array(env.dir_params, dtype=float) / np.sum(env.dir_params)
+        alphas = (alphas[0] * env.pois_param[0] +
+                  alphas[1] * env.pois_param[1] +
+                  alphas[2] * env.pois_param[2]) / np.sum(env.pois_param)
+    else:
+        alphas = alpha
+
+    if len(n_buy) == 3:
+        mepp = (env.mepp[0, :] * env.pois_param[0] +
+                env.mepp[1, :] * env.pois_param[1] +
+                env.mepp[2, :] * env.pois_param[2]) / np.sum(env.pois_param)
+    else:
+        mepp = n_buy
+
+    profit = profit_puller(prices=which_best, conv_rate_full=conv_rate,margins_full=env.global_margin,
+                           tran_prob=tr_prob,alphas=alphas, mepp=mepp)
+    return profit

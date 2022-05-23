@@ -8,8 +8,8 @@ matrix = np.array([[0.,   0.5,   0.5,   0.,    0.],
                    [0.5,  0.5,   0.,    0.,    0.]])
 transition_prob_listofmatrix = [matrix for i in range(3)]
 vec = 100*np.ones(6)
-dir_params_listofvector = [vec for i in range(3)]
-pois_param_vector = [1000 for i in range(3)]
+dir_params_listofvector = [vec for _ in range(3)]
+pois_param_vector = [1000 for _ in range(3)]
 
 conversion_rate_listofmatrix = []
 mat = np.array([[0.1,   0.1,  0.2,  0.3],
@@ -17,19 +17,19 @@ mat = np.array([[0.1,   0.1,  0.2,  0.3],
                 [0.1,   0.4,  0.3,  0.1],
                 [0.5,   0.1,  0.1,  0.01],
                 [0.01,  0.7,  0.1,  0.3]])
-conversion_rate_listofmatrix.append([mat for i in range(3)])
+conversion_rate_listofmatrix.append([mat for _ in range(3)])
 mat = np.array([[0.1,   0.1,  0.2,  0.3],
                 [0.1,   0.2,  0.2,  0.3],
                 [0.1,   0.4,  0.3,  0.1],
                 [0.5,   0.1,  0.1,  0.01],
                 [0.01,  0.4,  0.1,  0.3]])
-conversion_rate_listofmatrix.append([mat for i in range(3)])
+conversion_rate_listofmatrix.append([mat for _ in range(3)])
 mat = np.array([[0.5,   0.4,  0.3,  0.1],
                 [0.2,   0.4,  0.3,  0.1],
                 [0.1,   0.4,  0.3,  0.1],
                 [0.2,   0.2,  0.1,  0.1],
                 [0.4,   0.2,  0.1,  0.3]])
-conversion_rate_listofmatrix.append([mat for i in range(3)])
+conversion_rate_listofmatrix.append([mat for _ in range(3)])
 
 # 1: 200 all
 # 2: 100 all,200 all

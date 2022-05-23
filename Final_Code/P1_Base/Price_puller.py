@@ -129,7 +129,7 @@ def pull_prices(env: Hyperparameters, conv_rates, alpha, n_buy, trans_prob, prin
                         prices[count] = cdc(sim_prices)
 
                         count += 1
-                    sys.stdout.write('\r' + print_message + str(", pulling prices: ") + f'{count * 100 / cc} %')
+                sys.stdout.write('\r' + print_message + str(", pulling prices: ") + f'{count * 100 / cc} %')
     sys.stdout.write('\r' + print_message + str(", pulling prices: 100%"))
     profits = np.array(profits, dtype=float)
     best = np.argmax(profits)

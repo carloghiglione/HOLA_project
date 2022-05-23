@@ -11,16 +11,14 @@ from P1_Base.Classes_base import Hyperparameters
 # -transition prob.
 
 
-def profit_puller(prices, conv_rate_full, margins_full, tran_prob, alphas, mepp) -> float:
+def profit_puller(prices, conv_rate_full, margins_full, tran_prob, alphas, mepp, connectivity) -> float:
 
     conv_rate = np.zeros(shape=5, dtype=float)
     margin = np.zeros(shape=5, dtype=float)
-    connectivity = np.zeros(shape=(5, 2), dtype=int)
 
     for j in range(5):
         conv_rate[j] = conv_rate_full[j, prices[j]]
         margin[j] = margins_full[j, prices[j]]
-        connectivity[j, :] = np.array(np.where(tran_prob[j, :] > 0))
 
     pur_prob = np.zeros(5, dtype=float)
 
@@ -106,9 +104,13 @@ def pull_prices(env: Hyperparameters, conv_rates, alpha, n_buy, trans_prob, prin
     else:
         mepp = n_buy
 
+    connectivity = np.zeros(shape=(5, 2), dtype=int)
+    for j in range(5):
+        connectivity[j, :] = np.array(np.where(tr_prob[j, :] > 0))
+
     count = 0
     cc = 4**5
-    prices = [-1*np.ones(5) for _ in range(cc)]
+    prices = -1*np.ones(shape=(cc, 5), dtype=int)
     profits = np.zeros(cc, dtype=int)
 
     sim_prices = np.zeros(5, dtype=int)
@@ -125,12 +127,12 @@ def pull_prices(env: Hyperparameters, conv_rates, alpha, n_buy, trans_prob, prin
                         sim_prices[4] = p5
                         profits[count] = profit_puller(prices=sim_prices, conv_rate_full=conv_rate,
                                                        margins_full=env.global_margin, tran_prob=tr_prob,
-                                                       alphas=alphas, mepp=mepp)
-                        prices[count] = cdc(sim_prices)
+                                                       alphas=alphas, mepp=mepp, connectivity=connectivity)
+                        prices[count, :] = cdc(sim_prices)
 
                         count += 1
                 sys.stdout.write('\r' + print_message + str(", pulling prices: ") + f'{count * 100 / cc} %')
     sys.stdout.write('\r' + print_message + str(", pulling prices: 100%"))
     profits = np.array(profits, dtype=float)
     best = np.argmax(profits)
-    return prices[best]
+    return prices[best, :]

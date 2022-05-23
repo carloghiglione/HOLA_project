@@ -294,8 +294,11 @@ class CG_Learner:
     def pull_prices(self, print_message):
         ret = -1*np.ones(shape=(2, 2, 5), dtype=int)
         prices_from_lear = []
+        i = 0
         for lea in self.learners:
-            prices_from_lear.append(lea.pull_prices(self.env, print_message))
+            i+=1
+            printer = str(print_message + str(i)+': ')
+            prices_from_lear.append(lea.pull_prices(self.env, printer))
         for f1 in range(2):
             for f2 in range(2):
                 ret[f1, f2, :] = prices_from_lear[self.ass_matrix[f1, f2]]

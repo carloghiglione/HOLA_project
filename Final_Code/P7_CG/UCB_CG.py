@@ -1,4 +1,5 @@
 import copy
+import sys
 import numpy as np
 from Price_puller_CG import pull_prices, optimal_profit_lb
 from Classes_CG import Hyperparameters, Day
@@ -92,6 +93,7 @@ class CG_Learner:
         self.tot_click_per_type = [[np.zeros(shape=(5, 4), dtype=int) for _ in range(2)] for _ in range(2)]
         self.tot_buy_per_type = [[np.zeros(shape=(5, 4), dtype=int) for _ in range(2)] for _ in range(2)]
         self.feature_counter = np.zeros(shape=(2, 2), dtype=int)
+        self.printer = ""
 
     def update(self, day: Day):
         self.t += 1
@@ -113,6 +115,7 @@ class CG_Learner:
             self.generate_context()
 
     def generate_context(self):
+        sys.stdout.write('\r' + self.printer + str(", generating new contexts"))
         split_a = False
         split_b = False
         split_a0_b = False
@@ -293,11 +296,12 @@ class CG_Learner:
 
     def pull_prices(self, print_message):
         ret = -1*np.ones(shape=(2, 2, 5), dtype=int)
+        self.printer = print_message
         prices_from_lear = []
         i = 0
         for lea in self.learners:
             i+=1
-            printer = str(print_message + str(i)+': ')
+            printer = str(print_message + ", learner " + str(i))
             prices_from_lear.append(lea.pull_prices(self.env, printer))
         for f1 in range(2):
             for f2 in range(2):

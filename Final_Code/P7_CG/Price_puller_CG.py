@@ -31,7 +31,7 @@ def profit_puller(prices, conv_rate_full, margins_full, tran_prob, alphas, mepp,
         click_in_chain[0, p1] = conv_rate[0, p1]
         click_in_chain[1, p1] = conv_rate[1, p1]
         click_in_chain[2, p1] = conv_rate[2, p1]
-        prob_per_p1 = np.zeros(shape= (3, 5), dtype=float)
+        prob_per_p1 = np.zeros(shape=(3, 5), dtype=float)
         for p2 in np.intersect1d(connectivity[p1], to_visit):
             visited = np.array([p1, p2])
             to_visit = np.delete(copy.deepcopy(all_prods), visited)
@@ -141,9 +141,13 @@ def pull_prices(env, conv_rates, alpha, n_buy, trans_prob, print_message="Simula
                     sim_prices[3] = p4
                     for p5 in range(4):
                         sim_prices[4] = p5
-                        profits[count] = profit_puller(prices=sim_prices, conv_rate_full=cr_rate,
-                                                       margins_full=env.global_margin, tran_prob=tr_prob,
-                                                       alphas=alphas, mepp=n_buys, connectivity=connectivity,
+                        profits[count] = profit_puller(prices=sim_prices,
+                                                       conv_rate_full=cr_rate,
+                                                       margins_full=env.global_margin,
+                                                       tran_prob=tr_prob,
+                                                       alphas=alphas,
+                                                       mepp=n_buys,
+                                                       connectivity=connectivity,
                                                        pois=env.pois_param)
                         prices[count, :] = cdc(sim_prices)
 

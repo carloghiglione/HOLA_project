@@ -215,9 +215,13 @@ def optimal_profit_lb(env: Hyperparameters, conv_rates, alpha, n_buy, trans_prob
                     sim_prices[3] = p4
                     for p5 in range(4):
                         sim_prices[4] = p5
-                        profits[count] = profit_puller(prices=sim_prices, conv_rate_full=cr_rate,
-                                                       margins_full=env.global_margin, tran_prob=tr_prob,
-                                                       alphas=alphas, mepp=n_buys, connectivity=connectivity,
+                        profits[count] = profit_puller(prices=sim_prices,
+                                                       conv_rate_full=cr_rate,
+                                                       margins_full=env.global_margin,
+                                                       tran_prob=tr_prob,
+                                                       alphas=alphas,
+                                                       mepp=n_buys,
+                                                       connectivity=connectivity,
                                                        pois=env.pois_param)
                         prices[count] = cdc(sim_prices)
 

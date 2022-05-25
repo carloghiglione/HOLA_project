@@ -1,4 +1,4 @@
-import copy
+from copy import deepcopy as cdc
 import sys
 
 time_horizon = 250
@@ -28,9 +28,9 @@ learner = Items_UCB_Learner(copy.deepcopy(env))
 best_prices = [np.zeros(5, dtype=int) for i in range(len(env.phases)+1)]
 for p in range(len(env.phases)+1):
     printer = str(('\r' + str("Finding Clairvoyant solution for phase ") + str(p+1)))
-    best_prices[p] = pull_prices(env=copy.deepcopy(env), conv_rates=copy.deepcopy(env.global_conversion_rate[p]),
-                                 alpha=copy.deepcopy(env.dir_params), n_buy=copy.deepcopy(env.mepp),
-                                 trans_prob=copy.deepcopy(env.global_transition_prob), print_message=printer)
+    best_prices[p] = pull_prices(env=cdc(env), conv_rates=cdc(env.global_conversion_rate[p]),
+                                 alpha=cdc(env.dir_params), n_buy=cdc(env.mepp),
+                                 trans_prob=cdc(env.global_transition_prob), print_message=printer)
 sys.stdout.write('\r' + str("Finding Clairvoyant solution: Done") + '\n')
 print(f'Clairvoyant price configuration for each phase: {best_prices}')
 

@@ -63,19 +63,28 @@ class Items_UCB_Learner:
         self.learners = [UCB(n_arms, c) for _ in range(n_items)]
         self.n_arms = n_arms
         self.n_items = n_items
+        self.dirichlet = np.zeros((n_items+1))
+        self.n_buys = np.zeros(n_items)
+        self.count = np.zeros(n_items)
+        self.total_buy = np.zeros(n_items)
 
     def pull_prices(self, env: Hyperparameters, print_message):
         conv_rate = -1 * np.ones(shape=(5, 4))
         for i in range(5):
             conv_rate[i, :] = self.learners[i].pull_cr()
-        prices = pull_prices(env=env, conv_rates=conv_rate, alpha=env.dir_params, n_buy=env.mepp,
+        prices = pull_prices(env=env, conv_rates=conv_rate, alpha=self.dirichlet, n_buy=self.n_buys,
                              trans_prob=env.global_transition_prob, print_message=print_message)
         return prices
 
-    def update(self, pulled_prices, individual_clicks, individual_sales):
+    def update(self, pulled_prices, individual_clicks, individual_sales, items_sold, n_users, n_users_tot):
         for i in range(self.n_items):
             self.learners[i].update(pulled_prices[i],
                                     clicks=individual_clicks[i], sales=individual_sales[i])
+            self.total_buy[i] += items_sold[i]
+            self.count[i] += individual_sales[i]
+            self.n_buys[i] = (self.total_buy[i] / self.count[i]) - 1
+            self.dirichlet[i + 1] += np.sum(n_users[:, i])
+        self.dirichlet[0] += np.max([0, n_users_tot - np.sum(n_users)])
 
 
 class CG_Learner:
@@ -92,6 +101,9 @@ class CG_Learner:
         self.learners = [Items_UCB_Learner(self.env, self.c)]
         self.tot_click_per_type = [[np.zeros(shape=(5, 4), dtype=int) for _ in range(2)] for _ in range(2)]
         self.tot_buy_per_type = [[np.zeros(shape=(5, 4), dtype=int) for _ in range(2)] for _ in range(2)]
+        self.tot_items_per_type = [[np.zeros(shape=(5, 4), dtype=int) for _ in range(2)] for _ in range(2)]
+        self.tot_n_users_per_type = [[np.zeros(shape=5, dtype=int) for _ in range(2)] for _ in range(2)]
+        self.tot_nusers_global_per_type = [[0 for _ in range(2)] for _ in range(2)]
         self.feature_counter = np.zeros(shape=(2, 2), dtype=int)
         self.printer = ""
 
@@ -100,12 +112,18 @@ class CG_Learner:
 
         for fa in range(2):
             for fb in range(2):
-                self.learners[self.ass_matrix[fa, fb]].update(day.pulled_prices[fa, fb, :],
-                                                              day.individual_clicks[fa, fb, :],
-                                                              day.individual_sales[fa, fb, :])
+                self.learners[self.ass_matrix[fa, fb]].update(pulled_prices=day.pulled_prices[fa, fb, :],
+                                                              individual_clicks=day.individual_clicks[fa, fb, :],
+                                                              individual_sales=day.individual_sales[fa, fb, :],
+                                                              items_sold=day.items_sold[fa, fb, :],
+                                                              n_users=day.n_users[fa, fb, :],
+                                                              n_users_tot=day.website.n_users[fa, fb])
                 self.tot_buy_per_type[fa][fb][:, day.pulled_prices[fa, fb, :]] += day.individual_sales[fa, fb, :]
                 self.tot_click_per_type[fa][fb][:, day.pulled_prices[fa, fb, :]] += day.individual_clicks[fa, fb, :]
                 self.feature_counter[fa, fb] += np.sum(day.n_users[fa, fb, :])
+                self.tot_items_per_type[fa][fb][:, day.pulled_prices[fa, fb, :]] += day.items_sold[fa, fb, :]
+                self.tot_n_users_per_type[fa][fb] += day.n_users[fa, fb, :]
+                self.tot_nusers_global_per_type[fa][fb] += day.website.n_users[fa, fb]
 
         for lea in self.learners:
             for i in range(5):
@@ -155,14 +173,25 @@ class CG_Learner:
                 self.learners = [Items_UCB_Learner(env=self.env, c=self.c)]
                 clicks_mat = np.zeros(shape=(5, 4), dtype=int)
                 sales_mat = np.zeros(shape=(5, 4), dtype=int)
+                tot_items_buy_mat = np.zeros(shape=(5, 4), dtype=int)
+                tot_n_users = np.zeros(shape=5, dtype=int)
+                tot_nusers_global = 0
                 for f1 in range(2):
                     for f2 in range(2):
                         sales_mat += self.tot_buy_per_type[f1][f2]
                         clicks_mat += self.tot_click_per_type[f1][f2]
+                        tot_items_buy_mat += self.tot_items_per_type[f1][f2]
+                        tot_n_users += self.tot_n_users_per_type[f1][f2]
+                        tot_nusers_global += self.tot_nusers_global_per_type[f1][f2]
+
                 for i in range(4):
                     prices = i*np.ones(5, dtype=int)
-                    self.learners[0].update(prices, individual_clicks=clicks_mat[:, prices],
-                                            individual_sales=sales_mat[:, prices])
+                    self.learners[0].update(pulled_prices=prices,
+                                            individual_clicks=clicks_mat[:, prices],
+                                            individual_sales=sales_mat[:, prices],
+                                            items_sold=tot_items_buy_mat,
+                                            n_users=tot_n_users,
+                                            n_users_tot=tot_nusers_global)
             else:
                 self.ass_matrix = np.zeros(shape=(2, 2), dtype=int)
                 self.ass_matrix[:, 1] = np.ones(2, dtype=int)
@@ -170,13 +199,23 @@ class CG_Learner:
                 for lear in range(2):
                     clicks_mat = np.zeros(shape=(5, 4), dtype=int)
                     sales_mat = np.zeros(shape=(5, 4), dtype=int)
+                    tot_items_buy_mat = np.zeros(shape=(5, 4), dtype=int)
+                    tot_n_users = np.zeros(shape=5, dtype=int)
+                    tot_nusers_global = 0
                     for f1 in range(2):
                         sales_mat += self.tot_buy_per_type[f1][lear]
                         clicks_mat += self.tot_click_per_type[f1][lear]
+                        tot_items_buy_mat += self.tot_items_per_type[f1][lear]
+                        tot_n_users += self.tot_n_users_per_type[f1][lear]
+                        tot_nusers_global += self.tot_nusers_global_per_type[f1][lear]
                     for i in range(4):
                         prices = i * np.ones(5, dtype=int)
-                        self.learners[lear].update(prices, individual_clicks=clicks_mat[:, prices],
-                                                   individual_sales=sales_mat[:, prices])
+                        self.learners[lear].update(pulled_prices=prices,
+                                                   individual_clicks=clicks_mat[:, prices],
+                                                   individual_sales=sales_mat[:, prices],
+                                                   items_sold=tot_items_buy_mat,
+                                                   n_users=tot_n_users,
+                                                   n_users_tot=tot_nusers_global)
 
         # if we split fa
         else:
@@ -219,13 +258,23 @@ class CG_Learner:
                 for lear in range(2):
                     clicks_mat = np.zeros(shape=(5, 4), dtype=int)
                     sales_mat = np.zeros(shape=(5, 4), dtype=int)
+                    tot_items_buy_mat = np.zeros(shape=(5, 4), dtype=int)
+                    tot_n_users = np.zeros(shape=5, dtype=int)
+                    tot_nusers_global = 0
                     for f2 in range(2):
                         sales_mat += self.tot_buy_per_type[lear][f2]
                         clicks_mat += self.tot_click_per_type[lear][f2]
+                        tot_items_buy_mat += self.tot_items_per_type[lear][f2]
+                        tot_n_users += self.tot_n_users_per_type[lear][f2]
+                        tot_nusers_global += self.tot_nusers_global_per_type[lear][f2]
                     for i in range(4):
                         prices = i * np.ones(5, dtype=int)
-                        self.learners[lear].update(prices, individual_clicks=clicks_mat[:, prices],
-                                                   individual_sales=sales_mat[:, prices])
+                        self.learners[lear].update(pulled_prices=prices,
+                                                   individual_clicks=clicks_mat[:, prices],
+                                                   individual_sales=sales_mat[:, prices],
+                                                   items_sold=tot_items_buy_mat,
+                                                   n_users=tot_n_users,
+                                                   n_users_tot=tot_nusers_global)
 
             elif split_a0_b and not split_a1_b:
                 self.ass_matrix = np.zeros(shape=(2, 2), dtype=int)
@@ -236,19 +285,38 @@ class CG_Learner:
                                  Items_UCB_Learner(env=self.env, c=self.c)]
                 for i in range(4):
                     prices = i * np.ones(5, dtype=int)
-                    self.learners[0].update(prices, individual_clicks=self.tot_click_per_type[0][0][:, prices],
-                                            individual_sales=self.tot_buy_per_type[0][0][:, prices])
-                    self.learners[1].update(prices, individual_clicks=self.tot_click_per_type[0][1][:, prices],
-                                            individual_sales=self.tot_buy_per_type[0][1][:, prices])
+                    self.learners[0].update(pulled_prices=prices,
+                                            individual_clicks=self.tot_click_per_type[0][0][:, prices],
+                                            individual_sales=self.tot_buy_per_type[0][0][:, prices],
+                                            items_sold=self.tot_items_per_type[0][0],
+                                            n_users=self.tot_n_users_per_type[0][0],
+                                            n_users_tot=self.tot_nusers_global_per_type[0][0])
+
+                    self.learners[1].update(pulled_prices=prices,
+                                            individual_clicks=self.tot_click_per_type[0][1][:, prices],
+                                            individual_sales=self.tot_buy_per_type[0][1][:, prices],
+                                            items_sold=self.tot_items_per_type[0][1],
+                                            n_users=self.tot_n_users_per_type[0][1],
+                                            n_users_tot=self.tot_nusers_global_per_type[0][1])
                 clicks_mat = np.zeros(shape=(5, 4), dtype=int)
                 sales_mat = np.zeros(shape=(5, 4), dtype=int)
+                tot_items_buy_mat = np.zeros(shape=(5, 4), dtype=int)
+                tot_n_users = np.zeros(shape=5, dtype=int)
+                tot_nusers_global = 0
                 for f2 in range(2):
                     sales_mat += self.tot_buy_per_type[1][f2]
                     clicks_mat += self.tot_click_per_type[1][f2]
+                    tot_items_buy_mat += self.tot_items_per_type[1][f2]
+                    tot_n_users += self.tot_n_users_per_type[1][f2]
+                    tot_nusers_global += self.tot_nusers_global_per_type[1][f2]
                 for i in range(4):
                     prices = i * np.ones(5, dtype=int)
-                    self.learners[2].update(prices, individual_clicks=clicks_mat[:, prices],
-                                            individual_sales=sales_mat[:, prices])
+                    self.learners[2].update(pulled_prices=prices,
+                                            individual_clicks=clicks_mat[:, prices],
+                                            individual_sales=sales_mat[:, prices],
+                                            items_sold=tot_items_buy_mat,
+                                            n_users=tot_n_users,
+                                            n_users_tot=tot_nusers_global)
 
             elif not split_a0_b and split_a1_b:
                 self.ass_matrix = np.zeros(shape=(2, 2), dtype=int)
@@ -259,19 +327,37 @@ class CG_Learner:
                                  Items_UCB_Learner(env=self.env, c=self.c)]
                 for i in range(4):
                     prices = i * np.ones(5, dtype=int)
-                    self.learners[1].update(prices, individual_clicks=self.tot_click_per_type[1][0][:, prices],
-                                            individual_sales=self.tot_buy_per_type[1][0][:, prices])
-                    self.learners[2].update(prices, individual_clicks=self.tot_click_per_type[1][1][:, prices],
-                                            individual_sales=self.tot_buy_per_type[1][1][:, prices])
+                    self.learners[1].update(pulled_prices=prices,
+                                            individual_clicks=self.tot_click_per_type[1][0][:, prices],
+                                            individual_sales=self.tot_buy_per_type[1][0][:, prices],
+                                            items_sold=self.tot_items_per_type[1][0],
+                                            n_users=self.tot_n_users_per_type[1][0],
+                                            n_users_tot=self.tot_nusers_global_per_type[1][0])
+                    self.learners[2].update(pulled_prices=prices,
+                                            individual_clicks=self.tot_click_per_type[1][1][:, prices],
+                                            individual_sales=self.tot_buy_per_type[1][1][:, prices],
+                                            items_sold=self.tot_items_per_type[1][1],
+                                            n_users=self.tot_n_users_per_type[1][1],
+                                            n_users_tot=self.tot_nusers_global_per_type[1][1])
                 clicks_mat = np.zeros(shape=(5, 4), dtype=int)
                 sales_mat = np.zeros(shape=(5, 4), dtype=int)
+                tot_items_buy_mat = np.zeros(shape=(5, 4), dtype=int)
+                tot_n_users = np.zeros(shape=5, dtype=int)
+                tot_nusers_global = 0
                 for f2 in range(2):
                     sales_mat += self.tot_buy_per_type[0][f2]
                     clicks_mat += self.tot_click_per_type[0][f2]
+                    tot_items_buy_mat += self.tot_items_per_type[0][f2]
+                    tot_n_users += self.tot_n_users_per_type[0][f2]
+                    tot_nusers_global += self.tot_nusers_global_per_type[0][f2]
                 for i in range(4):
                     prices = i * np.ones(5, dtype=int)
-                    self.learners[0].update(prices, individual_clicks=clicks_mat[:, prices],
-                                            individual_sales=sales_mat[:, prices])
+                    self.learners[0].update(pulled_prices=prices,
+                                            individual_clicks=clicks_mat[:, prices],
+                                            individual_sales=sales_mat[:, prices],
+                                            items_sold=tot_items_buy_mat,
+                                            n_users=tot_n_users,
+                                            n_users_tot=tot_nusers_global)
 
             else:
                 self.ass_matrix = np.zeros(shape=(2, 2), dtype=int)
@@ -282,14 +368,30 @@ class CG_Learner:
                                  Items_UCB_Learner(env=self.env, c=self.c), Items_UCB_Learner(env=self.env, c=self.c)]
                 for i in range(4):
                     prices = i * np.ones(5, dtype=int)
-                    self.learners[0].update(prices, individual_clicks=self.tot_click_per_type[0][0][:, prices],
-                                            individual_sales=self.tot_buy_per_type[0][0][:, prices])
-                    self.learners[1].update(prices, individual_clicks=self.tot_click_per_type[0][1][:, prices],
-                                            individual_sales=self.tot_buy_per_type[0][1][:, prices])
-                    self.learners[2].update(prices, individual_clicks=self.tot_click_per_type[1][0][:, prices],
-                                            individual_sales=self.tot_buy_per_type[1][0][:, prices])
-                    self.learners[3].update(prices, individual_clicks=self.tot_click_per_type[1][1][:, prices],
-                                            individual_sales=self.tot_buy_per_type[1][1][:, prices])
+                    self.learners[0].update(pulled_prices=prices,
+                                            individual_clicks=self.tot_click_per_type[0][0][:, prices],
+                                            individual_sales=self.tot_buy_per_type[0][0][:, prices],
+                                            items_sold=self.tot_items_per_type[0][0],
+                                            n_users=self.tot_n_users_per_type[0][0],
+                                            n_users_tot=self.tot_nusers_global_per_type[0][0])
+                    self.learners[1].update(pulled_prices=prices,
+                                            individual_clicks=self.tot_click_per_type[0][1][:, prices],
+                                            individual_sales=self.tot_buy_per_type[0][1][:, prices],
+                                            items_sold=self.tot_items_per_type[0][1],
+                                            n_users=self.tot_n_users_per_type[0][1],
+                                            n_users_tot=self.tot_nusers_global_per_type[0][1])
+                    self.learners[2].update(pulled_prices=prices,
+                                            individual_clicks=self.tot_click_per_type[1][0][:, prices],
+                                            individual_sales=self.tot_buy_per_type[1][0][:, prices],
+                                            items_sold=self.tot_items_per_type[1][0],
+                                            n_users=self.tot_n_users_per_type[1][0],
+                                            n_users_tot=self.tot_nusers_global_per_type[1][0])
+                    self.learners[3].update(pulled_prices=prices,
+                                            individual_clicks=self.tot_click_per_type[1][1][:, prices],
+                                            individual_sales=self.tot_buy_per_type[1][1][:, prices],
+                                            items_sold=self.tot_items_per_type[1][1],
+                                            n_users=self.tot_n_users_per_type[1][1],
+                                            n_users_tot=self.tot_nusers_global_per_type[1][1])
         for lea in self.learners:
             for i in range(5):
                 lea.learners[i].t = copy.deepcopy(self.t)

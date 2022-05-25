@@ -3,7 +3,6 @@ import numpy as np
 import sys
 from copy import deepcopy as cdc
 from functools import reduce
-from P1_Base.Classes_base import Hyperparameters
 
 # SIMULATORE CON:
 # -conversion rates
@@ -86,7 +85,7 @@ def profit_puller(prices, conv_rate_full, margins_full, tran_prob, alphas, mepp,
     return profit/np.sum(pois)
 
 
-def pull_prices(env: Hyperparameters, conv_rates, alpha, n_buy, trans_prob, print_message="Simulating") -> np.array:
+def pull_prices(env, conv_rates, alpha, n_buy, trans_prob, print_message="Simulating") -> np.array:
     conv_rate = cdc(conv_rates)
     tran_prob = cdc(trans_prob)
     if len(conv_rate) != 3:  # SE SONO PASSATI GLI STIMATORI E NON QUELLI VERI
@@ -209,7 +208,7 @@ def profit_puller_old(prices, conv_rate_full, margins_full, tran_prob, alphas, m
     return profit
 
 
-def pull_prices_old(env: Hyperparameters, conv_rates, alpha, n_buy, trans_prob, print_message="Simulating") -> np.array:
+def pull_prices_old(env, conv_rates, alpha, n_buy, trans_prob, print_message="Simulating") -> np.array:
     conv_rate = cdc(conv_rates)
     tran_prob = cdc(trans_prob)
     if len(conv_rate) != 3:  # SE SONO PASSATI GLI STIMATORI E NON QUELLI VERI

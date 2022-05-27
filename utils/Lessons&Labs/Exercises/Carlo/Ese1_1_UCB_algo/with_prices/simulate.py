@@ -6,8 +6,8 @@ Created on Wed Mar 16 11:33:14 2022
 """
 import numpy as np
 from Environment import env
-from UCB_Learner import ucb
-# from UCB_Learner_alternative import ucb2
+# from UCB_Learner import ucb
+from UCB_Learner_alternative import ucb2
 import matplotlib.pyplot as plt
 
 # issues occour when I have two good arms almost equal, should run for long time T
@@ -17,7 +17,7 @@ prices = [100, 400, 300, 60]
 pricing_env = env(p, prices)
 
 # build agent (the algo)
-ag1 = ucb(len(p), prices)
+ag1 = ucb2(len(p), prices)
 T = 10000                                            # length of the experiment
 opt = np.max([a*b for a,b in zip(p, prices)])       # optimum in the maximum (prob of sell)*(price of sell)
 N_exp = 5                                          # number of times I run the experiment

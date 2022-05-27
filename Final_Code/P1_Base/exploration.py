@@ -18,7 +18,7 @@ sys.stdout.write(str(": Done") + '\n')
 np.random.seed(seed)
 
 printer = str(('\r' + str("Finding Clairvoyant solution")))
-prof = pull_prices(env=copy.deepcopy(env), conv_rates=copy.deepcopy(env.global_conversion_rate),
+prof = pull_prices_explor(env=copy.deepcopy(env), conv_rates=copy.deepcopy(env.global_conversion_rate),
                           alpha=copy.deepcopy(env.dir_params), n_buy=copy.deepcopy(env.mepp),
                           trans_prob=copy.deepcopy(env.global_transition_prob), print_message=printer)
 sys.stdout.write('\r' + str("Finding Clairvoyant solution: Done") + '\n')

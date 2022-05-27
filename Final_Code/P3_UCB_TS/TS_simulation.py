@@ -10,9 +10,9 @@ from TS import Items_TS_Learner
 from P1_Base.Price_puller import pull_prices
 import numpy as np
 import matplotlib.pyplot as plt
-from P1_Base.data_base import data_dict
+from P1_Base.data_cruise import data_dict
 env = Hyperparameters(data_dict["tr_prob"], data_dict["dir_par"], data_dict["pois_par"],
-                      data_dict["conv_rate"], data_dict["margin"])
+                      data_dict["conv_rate"], data_dict["margin"], mean_extra_purchases_per_product=data_dict["meppp"])
 
 sys.stdout.write(str(": Done") + '\n')
 
@@ -21,7 +21,7 @@ np.random.seed(seed)
 day_profit = []
 day_normalized_profit = []
 day_profit_per_prod = []
-day_prices = np.zeros(5, dtype=int)
+day_prices = 2*np.ones(5, dtype=int)
 learner = Items_TS_Learner(copy.deepcopy(env))
 printer = str(('\r' + str("Finding Clairvoyant solution")))
 best_prices = pull_prices(env=copy.deepcopy(env), conv_rates=copy.deepcopy(env.global_conversion_rate),
@@ -72,3 +72,5 @@ plt.xlabel("time [day]")
 plt.ylabel("regret [euros]")
 plt.tight_layout()
 plt.show()
+
+print(np.std(cl))

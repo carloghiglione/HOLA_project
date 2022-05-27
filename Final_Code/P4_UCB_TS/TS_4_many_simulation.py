@@ -7,7 +7,7 @@ seed = 17021890
 
 sys.stdout.write('\r' + str("Initializing simulation environment"))
 from P1_Base.Classes_base import *
-from TS import Items_TS_Learner
+from TS_4 import Items_TS_Learner
 from P1_Base.Price_puller import pull_prices
 import numpy as np
 import matplotlib.pyplot as plt

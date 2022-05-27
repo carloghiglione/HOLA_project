@@ -285,3 +285,75 @@ def pull_prices_old(env, conv_rates, alpha, n_buy, trans_prob, print_message="Si
     profits = np.array(profits, dtype=float)
     best = np.argmax(profits)
     return prices[best, :]
+
+def pull_prices_explor(env, conv_rates, alpha, n_buy, trans_prob, print_message="Simulating") -> np.array:
+    conv_rate = cdc(conv_rates)
+    tran_prob = cdc(trans_prob)
+    if len(conv_rate) != 3:  # SE SONO PASSATI GLI STIMATORI E NON QUELLI VERI
+        for i in range(5):
+            for j in range(4):
+                if (conv_rate[i][j] > 1) or (np.isinf(conv_rate[i][j])):
+                    conv_rate[i][j] = 1
+        cr_rate = [conv_rate for _ in range(3)]
+    else:
+        cr_rate = conv_rate
+
+    if len(tran_prob) != 3:  # SE SONO PASSATI GLI STIMATORI E NON QUELLI VERI
+        for i in range(5):
+            for j in range(5):
+                if (tran_prob[i][j] > 1) or (np.isinf(tran_prob[i][j])):
+                    tran_prob[i][j] = 1
+        tr_prob = [tran_prob for _ in range(3)]
+    else:
+        tr_prob = tran_prob
+    if len(alpha) != 3:
+        alphas = [alpha/np.sum(alpha) for _ in range(3)]
+    else:
+        alphas = [np.zeros(6, dtype=float) for _ in range(3)]
+        for j in range(3):
+            alphas[j] = np.array(env.dir_params[j], dtype=float) / np.sum(env.dir_params[j])
+
+    if len(n_buy) != 3:
+        n_buys = [n_buy for _ in range(3)]
+    else:
+        n_buys = n_buy
+
+    connectivity = np.zeros(shape=(5, 2), dtype=int)
+    for j in range(5):
+        connectivity[j, :] = reduce(np.union1d, (np.array(np.where(tran_prob[0][j, :] > 0)),
+                                                 np.array(np.where(tran_prob[1][j, :] > 0)),
+                                                 np.array(np.where(tran_prob[2][j, :] > 0))))
+
+    count = 0
+    cc = 4**5
+    prices = -1*np.ones(shape=(cc, 5), dtype=int)
+    profits = np.zeros(cc, dtype=int)
+
+    sim_prices = np.zeros(5, dtype=int)
+
+    for p1 in range(4):
+        sim_prices[0] = p1
+        for p2 in range(4):
+            sim_prices[1] = p2
+            for p3 in range(4):
+                sim_prices[2] = p3
+                for p4 in range(4):
+                    sim_prices[3] = p4
+                    for p5 in range(4):
+                        sim_prices[4] = p5
+                        profits[count] = profit_puller(prices=sim_prices,
+                                                       conv_rate_full=cr_rate,
+                                                       margins_full=env.global_margin,
+                                                       tran_prob=tr_prob,
+                                                       alphas=alphas,
+                                                       mepp=n_buys,
+                                                       connectivity=connectivity,
+                                                       pois=env.pois_param)
+                        prices[count, :] = cdc(sim_prices)
+
+                        count += 1
+                sys.stdout.write('\r' + print_message + str(", pulling prices: ") + f'{count * 100 / cc} %')
+    sys.stdout.write('\r' + print_message + str(", pulling prices: 100%"))
+    profits = np.array(profits, dtype=float)
+    best = np.argmax(profits)
+    return profits

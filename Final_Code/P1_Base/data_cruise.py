@@ -14,7 +14,7 @@ vecCA = 1000*np.array([0.15, 0.30, 0.25, 0.10, 0.05, 0.15], dtype=float)
 vecCG = 1000*np.array([0.15, 0.05, 0.05, 0.20, 0.30, 0.20], dtype=float)
 dir_params_listofvector = [vecS, vecCA, vecCG]
 dir_params_listofvector = [100*np.ones(6) for _ in range(3)]
-pois_param_vector = 10*[100, 600, 300]
+pois_param_vector = 10*np.array([100, 600, 300])
 matS = np.array([[0.02,  0.015,  0.01, 0.005],
                  [0.15,   0.08,  0.10,  0.08],
                  [0.30,   0.27,  0.25,  0.23],

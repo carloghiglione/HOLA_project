@@ -78,11 +78,11 @@ def profit_puller(prices, conv_rate_full, margins_full, tran_prob, alphas, mepp,
         pur_prob[2, :] += prob_per_p1[2, :] * (alphas[2][p1 + 1])
 
     profit = 0
-    profit += float(np.sum(pur_prob*margin*(1.0 + mepp[0])))*float(pois[0])
-    profit += float(np.sum(pur_prob*margin*(1.0 + mepp[1])))*float(pois[1])
-    profit += float(np.sum(pur_prob*margin*(1.0 + mepp[2])))*float(pois[2])
+    profit += float(np.sum(pur_prob*margin*(1.0 + mepp[0, :])))*float(pois[0])
+    profit += float(np.sum(pur_prob*margin*(1.0 + mepp[1, :])))*float(pois[1])
+    profit += float(np.sum(pur_prob*margin*(1.0 + mepp[2, :])))*float(pois[2])
 
-    return profit/float(np.sum(pois))
+    return float(profit/np.sum(pois))
 
 
 def pull_prices(env, conv_rates, alpha, n_buy, trans_prob, print_message="Simulating") -> np.array:

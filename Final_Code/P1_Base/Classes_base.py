@@ -81,7 +81,7 @@ class User:
         self.starting_product = starting_product
         self.products = np.zeros(5, dtype=int)  # 1 if product has been bought, 0 if not
         self.clicked = np.zeros(5, dtype=int)  # 1 if product has been clicked, 0 if not
-        self.cart = [0 for _ in range(5)]  # n* elements per product
+        self.cart = np.zeros(5, dtype=int)  # n* elements per product
         self.dynamic_transition_prob = copy.deepcopy(website.transition_prob[self.u_type])
 
     def new_primary(self, primary):

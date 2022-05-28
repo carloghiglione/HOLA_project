@@ -28,5 +28,6 @@ plt.plot(prof, color='red')
 plt.tight_layout()
 plt.show()
 
-print(prof)
+print(np.max(prof))
+
 

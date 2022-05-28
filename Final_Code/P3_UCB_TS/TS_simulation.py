@@ -7,7 +7,7 @@ seed = 17021890
 sys.stdout.write('\r' + str("Initializing simulation environment"))
 from P1_Base.Classes_base import *
 from TS import Items_TS_Learner
-from P1_Base.Price_puller import pull_prices
+from P1_Base.Price_puller import pull_prices, expected_profits
 import numpy as np
 import matplotlib.pyplot as plt
 from P1_Base.data_cruise import data_dict
@@ -30,11 +30,24 @@ best_prices = pull_prices(env=copy.deepcopy(env), conv_rates=copy.deepcopy(env.g
 sys.stdout.write('\r' + str("Finding Clairvoyant solution: Done") + '\n')
 print(f'Clairvoyant price configuration: {best_prices}')
 
+profits_for_config = expected_profits(env=copy.deepcopy(env), conv_rates=copy.deepcopy(env.global_conversion_rate),
+                                      alpha=copy.deepcopy(env.dir_params), n_buy=copy.deepcopy(env.mepp),
+                                      trans_prob=copy.deepcopy(env.global_transition_prob),
+                                      print_message=str(('\r' + str("Computing expected profits"))))
+sys.stdout.write('\r' + str("Computing expected profits: Done") + '\n')
+profits_for_config = float(np.sum(env.pois_param))*profits_for_config
+optimal_profit = profits_for_config[best_prices[0],
+                                    best_prices[1],
+                                    best_prices[2],
+                                    best_prices[3],
+                                    best_prices[4]]
+
 print("==========")
 
 sys.stdout.write('\r' + str("Beginning simulation") + '\n')
 
 cl = []
+e_prof = np.zeros(time_horizon, dtype=float)
 
 for t in range(time_horizon):
     print_message = str('\r' + "Simulation progress: " + f'{t * 100 / time_horizon} %')
@@ -43,6 +56,7 @@ for t in range(time_horizon):
     day_profit.append(day.profit)
     day_normalized_profit.append(day.profit/np.sum(day.n_users))
     # day_profit_per_prod.append(np.array(day.items_sold*day.website.margin, dtype=float))
+    e_prof[t] = profits_for_config[day_prices[0], day_prices[1], day_prices[2], day_prices[3], day_prices[4]]
     learner.update(day)
     day_prices = learner.pull_prices(env, print_message)
     cl.append(day.run_clairvoyant_simulation(best_prices))
@@ -67,9 +81,21 @@ plt.show()
 
 plt.figure(1)
 plt.plot(np.cumsum(cl_mean - day_profit))
+plt.plot(np.cumsum(optimal_profit - e_prof))
+plt.legend(["Regret", "Pseudo Regret"], loc='best')
 plt.title("Regret in single simulation")
 plt.xlabel("time [day]")
 plt.ylabel("regret [euros]")
+plt.tight_layout()
+plt.show()
+
+plt.figure(2)
+plt.plot(e_prof, color='red')
+plt.plot(optimal_profit*np.ones(time_horizon), color='blue')
+plt.legend(["TS - expected profit", "Optimal - expected profit"], loc='best')
+plt.title("Profit - simulation")
+plt.xlabel("time [day]")
+plt.ylabel("profit [euros]")
 plt.tight_layout()
 plt.show()
 

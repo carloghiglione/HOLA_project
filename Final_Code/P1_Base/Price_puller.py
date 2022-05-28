@@ -355,3 +355,52 @@ def pull_prices_explor(env, conv_rates, alpha, n_buy, trans_prob, print_message=
                 sys.stdout.write('\r' + print_message + str(", pulling prices: ") + f'{count * 100 / cc} %')
     sys.stdout.write('\r' + print_message + str(", pulling prices: 100%"))
     return profits
+
+
+def expected_profits(env, conv_rates, alpha, n_buy, trans_prob, print_message="Simulating") -> np.array:
+    cr_rate = cdc(conv_rates)
+    tr_prob = cdc(trans_prob)
+
+    alphas = [np.zeros(6, dtype=float) for _ in range(3)]
+    for j in range(3):
+        alphas[j] = np.array(env.dir_params[j], dtype=float) / np.sum(env.dir_params[j])
+
+    n_buys = n_buy
+
+    connectivity = np.zeros(shape=(5, 2), dtype=int)
+    for j in range(5):
+        connectivity[j, :] = reduce(np.union1d, (np.array(np.where(tr_prob[0][j, :] > 0)),
+                                                 np.array(np.where(tr_prob[1][j, :] > 0)),
+                                                 np.array(np.where(tr_prob[2][j, :] > 0))))
+
+    count = 0
+    cc = 4**5
+    prices = -1*np.ones(shape=(cc, 5), dtype=int)
+    profits = np.zeros(shape=(4, 4, 4, 4, 4), dtype=float)
+
+    sim_prices = np.zeros(5, dtype=int)
+
+    for p1 in range(4):
+        sim_prices[0] = p1
+        for p2 in range(4):
+            sim_prices[1] = p2
+            for p3 in range(4):
+                sim_prices[2] = p3
+                for p4 in range(4):
+                    sim_prices[3] = p4
+                    for p5 in range(4):
+                        sim_prices[4] = p5
+                        profits[p1, p2, p3, p4, p5] = profit_puller(prices=sim_prices,
+                                                                    conv_rate_full=cr_rate,
+                                                                    margins_full=env.global_margin,
+                                                                    tran_prob=tr_prob,
+                                                                    alphas=alphas,
+                                                                    mepp=n_buys,
+                                                                    connectivity=connectivity,
+                                                                    pois=env.pois_param)
+                        prices[count, :] = cdc(sim_prices)
+
+                        count += 1
+                sys.stdout.write('\r' + print_message + str(", computing expected prices: ") + f'{count * 100 / cc} %')
+    sys.stdout.write('\r' + print_message + str(", computing expected prices: 100%"))
+    return profits

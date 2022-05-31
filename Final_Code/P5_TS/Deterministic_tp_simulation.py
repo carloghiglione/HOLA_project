@@ -6,7 +6,7 @@ seed = 17021890
 
 sys.stdout.write('\r' + str("Initializing simulation environment"))
 from Classes_5 import *
-from Bayesian_tp import Full_Bayesian_TP
+from Deterministic_tp import Full_Deterministic_TP
 from P1_Base.Price_puller import pull_prices
 import numpy as np
 import matplotlib.pyplot as plt
@@ -23,7 +23,7 @@ day_profit = []
 day_normalized_profit = []
 day_profit_per_prod = []
 day_prices = np.zeros(5, dtype=int)
-learner = Full_Bayesian_TP(copy.deepcopy(env))
+learner = Full_Deterministic_TP(copy.deepcopy(env))
 printer = str(('\r' + str("Finding Clairvoyant solution")))
 best_prices = pull_prices(env=copy.deepcopy(env), conv_rates=copy.deepcopy(env.global_conversion_rate),
                           alpha=copy.deepcopy(env.dir_params), n_buy=copy.deepcopy(env.mepp),

@@ -89,5 +89,3 @@ plt.xlabel("time [day]")
 plt.ylabel("regret [euros]")
 plt.tight_layout()
 plt.show()
-
-print(np.std(cl))

@@ -7,8 +7,8 @@ seed = 17021890
 
 sys.stdout.write('\r' + str("Initializing simulation environment"))
 from P1_Base.Classes_base import *
-from TS import Items_TS_Learner
-from P1_Base.Price_puller import pull_prices, expected_profits
+from TS_greedy import Items_TS_Learner
+from P1_Base.Price_puller import greedy_pull_price_exact, expected_profits, pull_prices
 import numpy as np
 import matplotlib.pyplot as plt
 from P1_Base.data_cruise import data_dict
@@ -20,9 +20,13 @@ sys.stdout.write(str(": Done") + '\n')
 np.random.seed(seed)
 
 printer = str(('\r' + str("Finding Clairvoyant solution")))
-best_prices = pull_prices(env=copy.deepcopy(env), conv_rates=copy.deepcopy(env.global_conversion_rate),
-                          alpha=copy.deepcopy(env.dir_params), n_buy=copy.deepcopy(env.mepp),
-                          trans_prob=copy.deepcopy(env.global_transition_prob), print_message=printer)
+best_prices = greedy_pull_price_exact(env=copy.deepcopy(env), conv_rates=copy.deepcopy(env.global_conversion_rate),
+                                      alpha=copy.deepcopy(env.dir_params), n_buy=copy.deepcopy(env.mepp),
+                                      trans_prob=copy.deepcopy(env.global_transition_prob))
+actual_best_prices = pull_prices(env=copy.deepcopy(env), conv_rates=copy.deepcopy(env.global_conversion_rate),
+                                 alpha=copy.deepcopy(env.dir_params), n_buy=copy.deepcopy(env.mepp),
+                                 trans_prob=copy.deepcopy(env.global_transition_prob), print_message=printer)
+
 sys.stdout.write('\r' + str("Finding Clairvoyant solution: Done") + '\n')
 print(f'Clairvoyant price configuration: {best_prices}')
 profits_for_config = expected_profits(env=copy.deepcopy(env), conv_rates=copy.deepcopy(env.global_conversion_rate),
@@ -36,6 +40,11 @@ optimal_expected_profit = profits_for_config[best_prices[0],
                                              best_prices[2],
                                              best_prices[3],
                                              best_prices[4]]
+full_optimal_expected_profit = profits_for_config[actual_best_prices[0],
+                                                  actual_best_prices[1],
+                                                  actual_best_prices[2],
+                                                  actual_best_prices[3],
+                                                  actual_best_prices[4]]
 
 profits = []
 profits_cl = []
@@ -43,6 +52,7 @@ final_prices = []
 expected_prof = []
 regret = []
 pseudoregret = []
+true_pseudoregret = []
 
 for sim in range(n_trials):
     day_profit = []
@@ -63,8 +73,9 @@ for sim in range(n_trials):
         day_profit.append(day.profit)
         e_prof[t] = profits_for_config[day_prices[0], day_prices[1], day_prices[2], day_prices[3], day_prices[4]]
         learner.update(day)
-        day_prices = learner.pull_prices(env, print_message)
+        day_prices = learner.pull_prices(env)
         cl_profit.append(day.run_clairvoyant_simulation(best_prices))
+        sys.stdout.write(print_message)
 
     sys.stdout.write('\r' + "Simulation n." + str(sim + 1) + ": 100%" + '\n')
     sys.stdout.flush()
@@ -83,6 +94,7 @@ for sim in range(n_trials):
     expected_prof.append(copy.deepcopy(e_prof))
     regret.append(np.cumsum(cl_profit - day_profit))
     pseudoregret.append(np.cumsum(optimal_expected_profit - e_prof))
+    true_pseudoregret.append(np.cumsum(full_optimal_expected_profit - e_prof))
     sys.stdout.write('\r' + str("Simulation n." + str(sim+1) + " completed, "
                                 + f'final price configuration: {final_prices[sim]}' + '\n'))
 
@@ -92,6 +104,7 @@ profits_cl = np.array(profits_cl)
 expected_prof = np.array(expected_prof)
 regret = np.array(regret)
 pseudoregret = np.array(pseudoregret)
+true_pseudoregret = np.array(true_pseudoregret)
 
 # viene salvata come lista di vettori colonna, che una volta messo come matrice ha una dimensione extra,
 # è più semplice ridurre qui così non sfasiamo la struttura di un trial per riga
@@ -109,6 +122,8 @@ sd_reg = np.std(regret, axis=0)
 
 mean_psereg = np.mean(pseudoregret, axis=0)
 sd_psereg = np.std(pseudoregret, axis=0)
+true_mean_psereg = np.mean(true_pseudoregret, axis=0)
+true_sd_psereg = np.std(true_pseudoregret, axis=0)
 
 plt.figure(0)
 plt.plot(mean_prof, color='red')
@@ -124,7 +139,10 @@ plt.show()
 
 plt.figure(1)
 plt.plot(mean_psereg, color='blue')
+plt.plot(true_mean_psereg, color='red')
 plt.fill_between(range(time_horizon), mean_psereg - sd_psereg, mean_psereg + sd_psereg, alpha=0.4, color='blue')
+plt.fill_between(range(time_horizon), true_mean_psereg - true_sd_psereg, true_mean_psereg + true_sd_psereg, alpha=0.4, color='red')
+plt.legend(["PR greedy", "PR true"], loc='best')
 plt.title("Cumulative Pseudo-Regret")
 plt.xlabel("time [day]")
 plt.ylabel("regret [euros]")

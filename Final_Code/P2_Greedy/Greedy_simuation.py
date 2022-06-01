@@ -10,9 +10,9 @@ from P1_Base.Price_puller import pull_prices
 from Greedy import Greedy
 import numpy as np
 import matplotlib.pyplot as plt
-from P1_Base.data_base import data_dict
+from P1_Base.data_cruise import data_dict
 env = Hyperparameters(data_dict["tr_prob"], data_dict["dir_par"], data_dict["pois_par"],
-                      data_dict["conv_rate"], data_dict["margin"])
+                      data_dict["conv_rate"], data_dict["margin"], mean_extra_purchases_per_product=data_dict["meppp"])
 
 sys.stdout.write(str(": Done") + '\n')
 

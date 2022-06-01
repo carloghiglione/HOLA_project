@@ -1,4 +1,3 @@
-import copy
 import sys
 
 time_horizon = 50
@@ -67,12 +66,14 @@ sys.stdout.write('\r' + str("Simulation completed under time horizon t = ") + st
 final_prices = day_prices
 cl_mean = np.mean(cl)
 cl_line = cl_mean*np.ones(time_horizon)
+profit_with_optimal = np.array(cl, dtype=float)
 
 print(f'Final price configuration: {final_prices}')
 plt.figure(0)
 plt.plot(day_profit, color='red')
 plt.plot(cl_line, color='blue')
-plt.legend(["TS", "Optimal - mean"], loc='best')
+plt.plot(profit_with_optimal, color='green')
+plt.legend(["TS", "Optimal - mean", "Rewards of Clairvoyant"], loc='best')
 plt.title("Profit - simulation")
 plt.xlabel("time [day]")
 plt.ylabel("profit [euros]")
@@ -80,22 +81,12 @@ plt.tight_layout()
 plt.show()
 
 plt.figure(1)
-plt.plot(np.cumsum(cl_mean - day_profit))
-plt.plot(np.cumsum(optimal_profit - e_prof))
+plt.plot(np.cumsum(profit_with_optimal - day_profit), color='red')
+plt.plot(np.cumsum(optimal_profit - e_prof), color='blue')
 plt.legend(["Regret", "Pseudo Regret"], loc='best')
 plt.title("Regret in single simulation")
 plt.xlabel("time [day]")
 plt.ylabel("regret [euros]")
-plt.tight_layout()
-plt.show()
-
-plt.figure(2)
-plt.plot(e_prof, color='red')
-plt.plot(optimal_profit*np.ones(time_horizon), color='blue')
-plt.legend(["TS - expected profit", "Optimal - expected profit"], loc='best')
-plt.title("Profit - simulation")
-plt.xlabel("time [day]")
-plt.ylabel("profit [euros]")
 plt.tight_layout()
 plt.show()
 

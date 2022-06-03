@@ -93,7 +93,7 @@ class User:
 
         if buy:
             self.products[primary] = 1
-            how_much = npr.poisson(size=1, lam=self.mepp[self.u_type, primary])+1  # +1 since we know the user buys
+            how_much = npr.poisson(size=1, lam=self.mepp[self.u_type, primary])[0]+1  # +1 since we know the user buys
             self.cart[primary] = how_much
             for j in range(5):
                 click = npr.binomial(n=1, size=1, p=self.dynamic_transition_prob[primary, j])

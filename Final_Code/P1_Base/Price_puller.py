@@ -455,7 +455,7 @@ def greedy_pull_price_exact(env, conv_rates, alpha, n_buy, trans_prob):
 
     converged = False
     while converged == False:
-        converged, prices, current_profit = greedy_step_MC(prices=prices,
+        converged, prices, current_profit = greedy_step(prices=prices,
                                                         conv_rate_full=cr_rate,
                                                         margins_full=env.global_margin,
                                                         tran_prob=tr_prob,

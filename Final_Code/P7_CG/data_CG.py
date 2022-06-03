@@ -1,31 +1,51 @@
 import numpy as np
 
-matrix = np.array([[0.,   0.1,   0.1,   0.,    0.],
-                   [0.,   0.,    0.1,   0.1,   0.],
-                   [0.,   0.,    0.,    0.1,   0.1],
-                   [0.1,  0.,    0.,    0.,    0.1],
-                   [0.1,  0.1,   0.,    0.,    0.]])
+lam = 0.85
+matrix = np.array([[0.,         0.,     0.80,       lam*0.80,   0.],
+                   [0.75,       0.,     lam*0.70,   0.,         0.],
+                   [lam*0.50,   0.80,   0.,         0.,         0.],
+                   [0.,         0.,     lam*0.50,   0.,         0.75],
+                   [0.,         0.70,   lam*0.5,    0.,         0.]])
+
 transition_prob_listofmatrix = [matrix for i in range(3)]
-vec = 100*np.ones(6)
-dir_params_listofvector = [vec for i in range(3)]
-pois_param_vector = [[1000, 1000],
-                     [750,   250]]
-mat = np.array([[0.1,   0.2,  0.3,  0.2],
-                [0.5,   0.4,  0.3,  0.1],
-                [0.4,   0.3,  0.2,  0.1],
-                [0.5,   0.1,  0.1,  0.1],
-                [0.1,   0.3,  0.1,    0]])
+vecS = 10000*np.array([20,  5, 10, 25, 30, 15], dtype=float)
+vecCA = 10000*np.array([15, 30, 25, 10,  5, 15], dtype=float)
+vecCG = 10000*np.array([15,  5,  5, 20, 30, 20], dtype=float)
+dir_params_listofvector = [vecS, vecCA, vecCG]
+#pois_param_vector = 10*np.array([100, 600, 300])
+pois_param_vector = [[500,    500],
+                     [6000,  3000]]
+matS = np.array([[0.10,   0.07,  0.05,  0.01],
+                 [0.15,   0.10,  0.10,  0.05],
+                 [0.40,   0.37,  0.35,  0.33],
+                 [0.25,   0.25,  0.20,  0.15],
+                 [0.15,   0.13,  0.10,  0.03]])
+matCA = np.array([[0.27,   0.25,  0.20,  0.15],
+                  [0.40,   0.35,  0.35,  0.30],
+                  [0.15,   0.13,  0.10,  0.05],
+                  [0.15,   0.10,  0.10,  0.05],
+                  [0.15,   0.13,  0.10,  0.03]])
+matCG = np.array([[0.10,   0.07,  0.05,  0.03],
+                  [0.25,   0.20,  0.15,  0.10],
+                  [0.40,   0.37,  0.35,  0.30],
+                  [0.23,   0.20,  0.17,  0.10],
+                  [0.15,   0.13,  0.10,  0.03]])
 
-conversion_rate_listofmatrix = [mat for i in range(3)]
-margin_matrix = np.array([[10, 15, 20, 25],
-                          [30, 35, 40, 45],
-                          [20, 25, 30, 35],
-                          [1,  5,   7,  9],
-                          [5,  8,  11, 13]])
+conversion_rate_listofmatrix = [matS, matCA, matCG]
 
-feat_ass = np.array([[0, 1],
-                     [2, 2]], dtype=int)
+margin_matrix = np.array([[170,   230, 250, 300],
+                          [80,     90, 130, 150],
+                          [20,     25,  40,  50],
+                          [45,     65,  70,  84],
+                          [25,     45,  50,  60]])
 
+
+meppp = np.array([[0.1, 3, 7, 3, 4],
+                  [0.1, 3, 7, 3, 4],
+                  [0.1, 3, 7, 3, 4]], dtype=float)
+
+feat_ass = np.array([[0, 0],
+                     [1, 2]], dtype=int)
 
 
 data_dict = {
@@ -34,5 +54,6 @@ data_dict = {
     "pois_par": pois_param_vector,
     "conv_rate": conversion_rate_listofmatrix,
     "margin": margin_matrix,
-    "feat_ass": feat_ass
+    "feat_ass": feat_ass,
+    "meppp": meppp
 }

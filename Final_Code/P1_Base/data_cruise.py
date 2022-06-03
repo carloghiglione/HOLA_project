@@ -33,7 +33,7 @@ matCG = np.array([[0.10,   0.07,  0.05,  0.03],
 conversion_rate_listofmatrix = [matS, matCA, matCG]
 
 margin_matrix = np.array([[170,   230, 250, 300],
-                          [75,     90, 130, 150],
+                          [80,     90, 130, 150],
                           [20,     25,  40,  50],
                           [45,     65,  70,  84],
                           [25,     45,  50,  60]])

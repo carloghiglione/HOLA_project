@@ -2,7 +2,7 @@ import copy
 import sys
 
 time_horizon = 30
-n_trials = 5
+n_trials = 10
 seed = 17021890
 
 sys.stdout.write('\r' + str("Initializing simulation environment"))
@@ -72,6 +72,16 @@ for sim in range(n_trials):
         day.run_simulation()
         day_profit.append(day.profit)
         e_prof[t] = profits_for_config[day_prices[0], day_prices[1], day_prices[2], day_prices[3], day_prices[4]]
+        #if e_prof[t] > optimal_expected_profit:
+        #    print("==================================")
+        #    print("==================================")
+        #    print("==================================")
+        #    print("==================================")
+        #    print(day_prices)
+        #    print(e_prof[t])
+        #    print(optimal_expected_profit)
+        #    print(full_optimal_expected_profit)
+        #    sys.abort()
         learner.update(day)
         day_prices = learner.pull_prices(env)
         cl_profit.append(day.run_clairvoyant_simulation(best_prices))
@@ -139,10 +149,10 @@ plt.show()
 
 plt.figure(1)
 plt.plot(mean_psereg, color='blue')
-plt.plot(true_mean_psereg, color='red')
+#plt.plot(true_mean_psereg, color='red')
 plt.fill_between(range(time_horizon), mean_psereg - sd_psereg, mean_psereg + sd_psereg, alpha=0.4, color='blue')
-plt.fill_between(range(time_horizon), true_mean_psereg - true_sd_psereg, true_mean_psereg + true_sd_psereg, alpha=0.4, color='red')
-plt.legend(["PR greedy", "PR true"], loc='best')
+#plt.fill_between(range(time_horizon), true_mean_psereg - true_sd_psereg, true_mean_psereg + true_sd_psereg, alpha=0.4, color='red')
+#plt.legend(["PR greedy", "PR true"], loc='best')
 plt.title("Cumulative Pseudo-Regret")
 plt.xlabel("time [day]")
 plt.ylabel("regret [euros]")

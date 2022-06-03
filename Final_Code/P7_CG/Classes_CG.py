@@ -8,7 +8,7 @@ import copy
 #   •poisson parameters -> MEAN number of users for each type each day
 
 class Hyperparameters:
-    def __init__(self, transition_prob_listofmatrix, dir_params_listofvector, pois_param_vector, conversion_rate_listofmatrix, margin_matrix, feat_ass: np.array,mean_extra_purchases_per_product=2*np.ones(shape=(3, ))):
+    def __init__(self, transition_prob_listofmatrix, dir_params_listofvector, pois_param_vector, conversion_rate_listofmatrix, margin_matrix, feat_ass: np.array, mean_extra_purchases_per_product=2*np.ones(shape=(3, 5))):
         self.global_transition_prob = transition_prob_listofmatrix  # transition_prob[i,j] = prob that j is selected given i as primal, this econdes both selection probability and probability to see j
         self.dir_params = dir_params_listofvector  # vector with dirichlet parameters
         self.pois_param = pois_param_vector
@@ -20,13 +20,13 @@ class Hyperparameters:
 
 class Daily_Website:
     def __init__(self, env: Hyperparameters, pulled_prices):
+        self.env = env
         self.transition_prob = env.global_transition_prob
         self.alphas = self.sample_user_partitions(env.dir_params)
         self.n_users = self.sample_n_users(env.pois_param)
         self.price = pulled_prices
         self.conversion_rates = self.select_conversion_rates(env.global_conversion_rate, pulled_prices)
         self.margin = self.select_margins(env.global_margin, pulled_prices)
-        self.env = env
 
     def sample_user_partitions(self, params):
         alphas = []
@@ -38,7 +38,7 @@ class Daily_Website:
         n_users = np.zeros(shape=(2, 2), dtype=int)
         for f1 in range(2):
             for f2 in range(2):
-                n_users[f1, f2] = int(params[f1, f2]*0.9 + npr.poisson(lam=params[f1, f2]*0.1, size=1))
+                n_users[f1, f2] = int(params[f1][f2]*0.95 + npr.poisson(lam=params[f1][f2]*0.05, size=1))
         return n_users
 
     def select_conversion_rates(self, conv_rates, prices):
@@ -46,7 +46,7 @@ class Daily_Website:
         for f1 in range(2):
             for f2 in range(2):
                 for j in range(5):
-                    true_type = self.env.feature_associator[f1, f2]
+                    true_type = self.env.feature_associator[f1][f2]
                     ret[f1, f2, j] = conv_rates[true_type][j, prices[f1, f2, j]]
         return ret
 
@@ -62,7 +62,7 @@ class Daily_Website:
         users_pp = np.ndarray(shape=(2, 2, 5), dtype=int)
         for f1 in range(2):
             for f2 in range(2):
-                t = self.env.feature_associator[f1, f2]
+                t = self.env.feature_associator[f1][f2]
                 users = []
                 total = 0
                 for i in range(5):
@@ -70,7 +70,7 @@ class Daily_Website:
                     if (n_dirty % 1 > 0.5) and (total + mt.ceil(n_dirty) <= self.n_users[f1, f2]):
                         users.append(mt.ceil(n_dirty))
                         total = total + mt.ceil(n_dirty)
-                    elif total + mt.floor(n_dirty) <= self.n_users[t]:
+                    elif total + mt.floor(n_dirty) <= self.n_users[f1, f2]:
                         users.append(mt.floor(n_dirty))
                         total = total + mt.floor(n_dirty)
                     else:
@@ -100,7 +100,7 @@ class User:
 
         if buy:
             self.products[primary] = 1
-            how_much = npr.poisson(size=1, lam=self.mepp[self.u_type, primary])+1  # +1 since we know the user buys
+            how_much = npr.poisson(size=1, lam=self.mepp[self.u_type, primary])[0]+1  # +1 since we know the user buys
             self.cart[primary] = how_much
             for j in range(5):
                 click = npr.binomial(n=1, size=1, p=self.dynamic_transition_prob[primary, j])
@@ -133,7 +133,6 @@ class Day:
         self.individual_clicks = np.zeros(shape=(2, 2, 5), dtype=int)
 
     def run_simulation(self):
-
         for f1 in range(2):
             for f2 in range(2):
                 for p in range(5):
@@ -143,9 +142,9 @@ class Day:
                         user.simulate()
                         self.profit = self.profit + user.checkout()
                         # self.items_sold = self.items_sold + user.cart elementwise
-                        self.items_sold[f1, f2, :] = np.array([sum(x) for x in zip(self.items_sold[f1, f2, :], user.cart)])
-                        self.individual_sales[f1, f2, :] = np.array([sum(x) for x in zip(self.individual_sales[f1, f2, :], user.products)])
-                        self.individual_clicks[f1, f2, :] = np.array([sum(x) for x in zip(self.individual_clicks[f1, f2, :], user.clicked)])
+                        self.items_sold[f1, f2, :] = self.items_sold[f1, f2, :] + np.array(user.cart, dtype=int)
+                        self.individual_sales[f1, f2, :] = self.individual_sales[f1, f2, :] + np.array(user.products, dtype=int)
+                        self.individual_clicks[f1, f2, :] = self.individual_clicks[f1, f2, :] + np.array(user.clicked, dtype=int)
 
     def run_clairvoyant_simulation(self, best_prices) -> float:
         best_website = Daily_Website(self.env, best_prices)

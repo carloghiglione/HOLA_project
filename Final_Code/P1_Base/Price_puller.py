@@ -80,6 +80,7 @@ def profit_puller(prices, conv_rate_full, margins_full, tran_prob, alphas, mepp,
         pur_prob[2, :] += prob_per_p1[2, :] * (alphas[2][p1 + 1])
 
     profit = 0
+
     profit += float(np.sum(pur_prob[0, :]*margin*(1.0 + mepp[0, :])))*float(pois[0])
     profit += float(np.sum(pur_prob[1, :]*margin*(1.0 + mepp[1, :])))*float(pois[1])
     profit += float(np.sum(pur_prob[2, :]*margin*(1.0 + mepp[2, :])))*float(pois[2])
@@ -314,10 +315,15 @@ def pull_prices_explor(env, conv_rates, alpha, n_buy, trans_prob, print_message=
         for j in range(3):
             alphas[j] = np.array(env.dir_params[j], dtype=float) / np.sum(env.dir_params[j])
 
-    if len(n_buy) != 3:
-        n_buys = [n_buy for _ in range(3)]
+    if n_buy.shape[0] != 3:
+        n_buys = np.array([n_buy for _ in range(3)])
     else:
         n_buys = n_buy
+
+    if len(env.pois_param) != 3:
+        poisson = np.array([10, 10, 10])
+    else:
+        poisson = env.pois_param
 
     connectivity = np.zeros(shape=(5, 2), dtype=int)
     for j in range(5):
@@ -349,7 +355,7 @@ def pull_prices_explor(env, conv_rates, alpha, n_buy, trans_prob, print_message=
                                                        alphas=alphas,
                                                        mepp=n_buys,
                                                        connectivity=connectivity,
-                                                       pois=env.pois_param)
+                                                       pois=poisson)
                         prices[count, :] = cdc(sim_prices)
 
                         count += 1

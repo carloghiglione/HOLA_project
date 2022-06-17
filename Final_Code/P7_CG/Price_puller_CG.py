@@ -145,7 +145,7 @@ def optimal_profit_lb(env: Hyperparameters, conv_rates, alpha, n_buy, trans_prob
     count = 0
     cc = 4 ** 5
     prices = -1 * np.ones(shape=(cc, 5), dtype=int)
-    profits = np.zeros(cc, dtype=int)
+    profits = np.zeros(cc, dtype=float)
 
     sim_prices = np.zeros(5, dtype=int)
 

@@ -9,7 +9,7 @@ from P1_Base.Classes_base import *
 from P1_Base.Price_puller import pull_prices_explor
 import numpy as np
 import matplotlib.pyplot as plt
-from P1_Base.data_cruise import data_dict
+from P7_CG.data_CG import data_dict
 env = Hyperparameters(data_dict["tr_prob"], data_dict["dir_par"], data_dict["pois_par"],
                       data_dict["conv_rate"], data_dict["margin"], data_dict["meppp"])
 

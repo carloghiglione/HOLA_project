@@ -3,7 +3,7 @@ import sys
 import numpy as np
 from Price_puller_CG import pull_prices, optimal_profit_lb
 from Classes_CG import Hyperparameters, Day
-
+from copy import deepcopy as cdc
 
 class Learner:
 
@@ -92,7 +92,13 @@ class Items_UCB_Learner:
         for i in range(self.n_items):
             self.learners[i].t = copy.deepcopy(t)
 
-    def get_past_data(self, individual_clicks, individual_sales, items_sold, n_users, n_users_tot, time):
+    def get_past_data(self, orig_individual_clicks, orig_individual_sales, orig_items_sold, orig_n_users, orig_n_users_tot, orig_time):
+        individual_clicks = cdc(orig_individual_clicks)
+        individual_sales = cdc(orig_individual_sales)
+        items_sold = cdc(orig_items_sold)
+        n_users = cdc(orig_n_users)
+        n_users_tot = cdc(orig_n_users_tot)
+        time = cdc(orig_time)
         for prod in range(self.n_items):
             for price in range(self.n_arms):
                 self.learners[prod].tot_clicks[price] = individual_clicks[prod, price]
@@ -158,6 +164,7 @@ class CG_Learner:
             self.generate_context()
 
     def generate_context(self):
+
         sys.stdout.write('\r' + self.printer + str(", generating new contexts"))
         split_a = False
         split_b = False
@@ -172,7 +179,6 @@ class CG_Learner:
 
         mu_hat_a_0 = self.profit_getter(a=0, print_message="Evaluating context fa=0")
         mu_hat_a_1 = self.profit_getter(a=1, print_message="Evaluating context fa=1")
-
         mu_hat_nosplit = self.profit_getter(print_message="Evaluating full context")
 
         if p_hat_a_0*mu_hat_a_0 + p_hat_a_1*mu_hat_a_1 >= mu_hat_nosplit:
@@ -208,7 +214,11 @@ class CG_Learner:
                         tot_items_buy += self.tot_items_per_type[f1][f2]
                         tot_n_users += self.tot_n_users_per_type[f1][f2]
                         tot_nusers_global += self.tot_nusers_global_per_type[f1][f2]
-                self.learners[0].get_past_data(clicks_mat, sales_mat, tot_items_buy, tot_n_users, tot_nusers_global, self.t)
+                self.learners[0].get_past_data(clicks_mat,
+                                               sales_mat,
+                                               tot_items_buy,
+                                               tot_n_users,
+                                               tot_nusers_global, self.t)
 
                 #for i in range(4):
                 #    prices = i*np.ones(shape=5, dtype=int)
@@ -302,7 +312,11 @@ class CG_Learner:
                     #                               items_sold=tot_items_buy_mat*(int(i == 0)),
                     #                               n_users=tot_n_users*(int(i == 0)),
                     #                               n_users_tot=tot_nusers_global*(int(i == 0)))
-                    self.learners[lear].get_past_data(clicks_mat, sales_mat, tot_items_buy, tot_n_users, tot_nusers_global, self.t)
+                    self.learners[lear].get_past_data(clicks_mat,
+                                                      sales_mat,
+                                                      tot_items_buy,
+                                                      tot_n_users,
+                                                      tot_nusers_global, self.t)
 
             elif split_a0_b and not split_a1_b:
                 self.ass_matrix = np.zeros(shape=(2, 2), dtype=int)
@@ -467,10 +481,6 @@ class CG_Learner:
         #for lea in self.learners:
         #    lea.set_time(copy.deepcopy(self.t))
         self.context_history.append(copy.deepcopy(self.ass_matrix))
-        print(split_a)
-        print(split_b)
-        print(split_a1_b)
-        print(split_a0_b)
 
     def pull_prices(self, print_message):
         ret = -1*np.ones(shape=(2, 2, 5), dtype=int)
@@ -486,53 +496,53 @@ class CG_Learner:
                 ret[f1, f2, :] = prices_from_lear[self.ass_matrix[f1, f2]]
         return ret
 
-    def profit_getter(self, a=2, b=2, print_message="Partitioning: "):
+    def profit_getter(self, a=2, b=2, print_message="Partitioning: ") -> float:
         tot_click = np.zeros(shape=(5, 4), dtype=int)
         tot_buy = np.zeros(shape=(5, 4), dtype=int)
-        meppp = np.zeros(shape=5, dtype=float)
+        meppp_den = np.zeros(shape=5, dtype=float)
         base_sales = np.zeros(shape=5, dtype=float)
-        dir = np.zeros(shape=6, dtype=float)
+        diri = np.zeros(shape=6, dtype=float)
         if a == 2:
             if b == 2:
                 for f1 in range(2):
                     for f2 in range(2):
-                        tot_click += self.tot_click_per_type[f1][f2]
-                        tot_buy += self.tot_individual_sales_per_type[f1][f2]
-                        meppp += np.sum(self.tot_individual_sales_per_type[f1][f2], axis=1)
-                        base_sales += self.tot_items_per_type[f1][f2]
-                        dir[1:6] += self.tot_n_users_per_type[f1][f2]
-                        dir[0] += self.tot_nusers_global_per_type[f1][f2] - np.sum(self.tot_n_users_per_type[f1][f2])
+                        tot_click += cdc(self.tot_click_per_type[f1][f2])
+                        tot_buy += cdc(self.tot_individual_sales_per_type[f1][f2])
+                        meppp_den += cdc(np.sum(self.tot_individual_sales_per_type[f1][f2], axis=1))
+                        base_sales += cdc(self.tot_items_per_type[f1][f2])
+                        diri[1:6] += cdc(self.tot_n_users_per_type[f1][f2])
+                        diri[0] += cdc(self.tot_nusers_global_per_type[f1][f2] - np.sum(self.tot_n_users_per_type[f1][f2]))
             else:
                 for f1 in range(2):
-                    tot_click += self.tot_click_per_type[f1][b]
-                    tot_buy += self.tot_individual_sales_per_type[f1][b]
-                    meppp += np.sum(self.tot_individual_sales_per_type[f1][b], axis=1)
-                    base_sales += self.tot_items_per_type[f1][b]
-                    dir[1:6] += self.tot_n_users_per_type[f1][b]
-                    dir[0] += self.tot_nusers_global_per_type[f1][b] - np.sum(self.tot_n_users_per_type[f1][b])
+                    tot_click += cdc(self.tot_click_per_type[f1][b])
+                    tot_buy += cdc(self.tot_individual_sales_per_type[f1][b])
+                    meppp_den += cdc(np.sum(self.tot_individual_sales_per_type[f1][b], axis=1))
+                    base_sales += cdc(self.tot_items_per_type[f1][b])
+                    diri[1:6] += cdc(self.tot_n_users_per_type[f1][b])
+                    diri[0] += cdc(self.tot_nusers_global_per_type[f1][b] - np.sum(self.tot_n_users_per_type[f1][b]))
         else:
             if b == 2:
                 for f2 in range(2):
-                    tot_click += self.tot_click_per_type[a][f2]
-                    tot_buy += self.tot_individual_sales_per_type[a][f2]
-                    meppp += np.sum(self.tot_individual_sales_per_type[a][f2], axis=1)
-                    base_sales += self.tot_items_per_type[a][f2]
-                    dir[1:6] += self.tot_n_users_per_type[a][f2]
-                    dir[0] += self.tot_nusers_global_per_type[a][f2] - np.sum(self.tot_n_users_per_type[a][f2])
+                    tot_click += cdc(self.tot_click_per_type[a][f2])
+                    tot_buy += cdc(self.tot_individual_sales_per_type[a][f2])
+                    meppp_den += cdc(np.sum(self.tot_individual_sales_per_type[a][f2], axis=1))
+                    base_sales += cdc(self.tot_items_per_type[a][f2])
+                    diri[1:6] += cdc(self.tot_n_users_per_type[a][f2])
+                    diri[0] += cdc(self.tot_nusers_global_per_type[a][f2] - np.sum(self.tot_n_users_per_type[a][f2]))
             else:
-                tot_click += self.tot_click_per_type[a][b]
-                tot_buy += self.tot_individual_sales_per_type[a][b]
-                meppp += np.sum(self.tot_individual_sales_per_type[a][b], axis=1)
-                base_sales += self.tot_items_per_type[a][b]
-                dir[1:6] += self.tot_n_users_per_type[a][b]
-                dir[0] += self.tot_nusers_global_per_type[a][b] - np.sum(self.tot_n_users_per_type[a][b])
+                tot_click += cdc(self.tot_click_per_type[a][b])
+                tot_buy += cdc(self.tot_individual_sales_per_type[a][b])
+                meppp_den += cdc(np.sum(self.tot_individual_sales_per_type[a][b], axis=1))
+                base_sales += cdc(self.tot_items_per_type[a][b])
+                diri[1:6] += cdc(self.tot_n_users_per_type[a][b])
+                diri[0] += cdc(self.tot_nusers_global_per_type[a][b] - np.sum(self.tot_n_users_per_type[a][b]))
 
         conv_rate = np.zeros(shape=(5, 4), dtype=float)
-        meppp = meppp/base_sales - 1
+        meppp = base_sales/meppp_den - 1
         for prod in range(5):
             for price in range(4):
-                temp = (tot_buy[prod, price]/tot_click[prod, price]) - np.sqrt(2*np.log(self.t)/tot_click[prod, price])
+                temp = (tot_buy[prod, price]/tot_click[prod, price]) - np.sqrt(np.log(self.t)/tot_click[prod, price])
                 conv_rate[prod, price] = np.max([0, temp])
-        prof = optimal_profit_lb(env=self.env, conv_rates=conv_rate, alpha=dir, n_buy=meppp,
-                                 trans_prob=self.env.global_transition_prob, print_message=print_message)
+        prof = optimal_profit_lb(env=cdc(self.env), conv_rates=conv_rate, alpha=diri, n_buy=meppp,
+                                 trans_prob=cdc(self.env.global_transition_prob), print_message=print_message)
         return prof

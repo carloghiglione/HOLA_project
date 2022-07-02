@@ -20,7 +20,7 @@ def profit_puller(prices, conv_rate_full, margins_full, tran_prob, alphas, mepp,
     for j in range(5):
         conv_rate[j] = conv_rate_full[j, prices[j]]
         margin[j] = margins_full[j, prices[j]]
-    pur_prob = np.zeros(shape=(5), dtype=float)
+    pur_prob = np.zeros(shape=5, dtype=float)
     all_prods = np.array([0, 1, 2, 3, 4])
     for p1 in range(5):
         visited = np.array([p1])
@@ -90,7 +90,7 @@ def pull_prices(env, conv_rates, alpha, n_buy, trans_prob, print_message="Simula
     count = 0
     cc = 4**5
     prices = -1*np.ones(shape=(cc, 5), dtype=int)
-    profits = np.zeros(cc, dtype=int)
+    profits = np.zeros(cc, dtype=float)
 
     sim_prices = np.zeros(5, dtype=int)
 
@@ -144,7 +144,6 @@ def optimal_profit_lb(env: Hyperparameters, conv_rates, alpha, n_buy, trans_prob
 
     count = 0
     cc = 4 ** 5
-    prices = -1 * np.ones(shape=(cc, 5), dtype=int)
     profits = np.zeros(cc, dtype=float)
 
     sim_prices = np.zeros(5, dtype=int)
@@ -167,11 +166,9 @@ def optimal_profit_lb(env: Hyperparameters, conv_rates, alpha, n_buy, trans_prob
                                                        mepp=n_buys,
                                                        connectivity=connectivity,
                                                        pois=env.pois_param)
-                        prices[count] = cdc(sim_prices)
 
                         count += 1
                 sys.stdout.write('\r' + print_message + str(", pulling prices: ") + f'{count * 100 / cc} %')
     sys.stdout.write('\r' + print_message + str(", pulling prices: 100%"))
-    profits = np.array(profits, dtype=float)
     best = np.argmax(profits)
     return profits[best]

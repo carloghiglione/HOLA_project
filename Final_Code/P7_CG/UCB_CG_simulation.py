@@ -1,8 +1,8 @@
 import copy
 import sys
 
-context_window = 15
-time_horizon = 30
+context_window = 14
+time_horizon = 50
 seed = 17021890
 
 sys.stdout.write('\r' + str("Initializing simulation environment"))

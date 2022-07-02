@@ -118,7 +118,7 @@ class User:
 
 
 class Day:
-    def __init__(self, g_web: Hyperparameters, prices: list):
+    def __init__(self, g_web: Hyperparameters, prices):
         self.pulled_prices = prices
         self.env = g_web
         self.mepp = g_web.mepp

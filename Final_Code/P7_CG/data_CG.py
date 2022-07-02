@@ -13,8 +13,8 @@ vecCA = 10000*np.array([15, 30, 25, 10,  5, 15], dtype=float)
 vecCG = 10000*np.array([15,  5,  5, 20, 30, 20], dtype=float)
 dir_params_listofvector = [vecS, vecCA, vecCG]
 #pois_param_vector = 10*np.array([100, 600, 300])
-pois_param_vector = [[100,  150],
-                     [450,  300]]
+pois_param_vector = [[1000,  1500],
+                     [4500,  3000]]
 matS = np.array([[0.05,   0.01,  0.00,  0.00],
                  [0.20,   0.10,  0.05,  0.00],
                  [0.60,   0.55,  0.50,  0.45],

@@ -1,8 +1,8 @@
 import copy
 import sys
 
-time_horizon = 30
-n_trials = 5
+time_horizon = 50
+n_trials = 10
 seed = 17021890
 
 sys.stdout.write('\r' + str("Initializing simulation environment"))
@@ -69,7 +69,7 @@ for sim in range(n_trials):
     sys.stdout.write('\r' + "Simulation n." + str(sim + 1) + ": 100%" + '\n')
     sys.stdout.flush()
 
-    final_prices.append(day_prices)
+    final_prices.append(copy.deepcopy(day_prices))
 
     day_profit = np.array(day_profit)
     day_profit.reshape(time_horizon)

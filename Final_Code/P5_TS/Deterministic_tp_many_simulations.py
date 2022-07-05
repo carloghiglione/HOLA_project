@@ -62,7 +62,7 @@ for sim in range(n_trials):
         day = Day(copy.deepcopy(env), day_prices)
         day.run_simulation()
         day_profit.append(day.profit)
-        e_prof[t] = profits_for_config[day_prices[0], day_prices[1], day_prices[2], day_prices[3], day_prices[4]]
+        e_prof[t] = copy.deepcopy(profits_for_config[day_prices[0], day_prices[1], day_prices[2], day_prices[3], day_prices[4]])
         learner.update(day)
         day_prices = learner.pull_prices(env, print_message)
         cl_profit.append(day.run_clairvoyant_simulation(best_prices))
@@ -89,18 +89,26 @@ for sim in range(n_trials):
 
 
 profits = np.array(profits)
+if len(profits.shape) == 3:
+    profits = profits[:, :, 0]
+
 profits_cl = np.array(profits_cl)
+if len(profits_cl.shape) == 3:
+    profits_cl = profits_cl[:, :, 0]
+
 expected_prof = np.array(expected_prof)
+if len(expected_prof.shape) == 3:
+    expected_prof = expected_prof[:, :, 0]
+
 regret = np.array(regret)
+if len(regret.shape) == 3:
+    regret = regret[:, :, 0]
+
 pseudoregret = np.array(pseudoregret)
+if len(pseudoregret.shape) == 3:
+    pseudoregret = pseudoregret[:, :, 0]
 
-print(profits.shape)
 
-# viene salvata come lista di vettori colonna, che una volta messo come matrice ha una dimensione extra,
-# è più semplice ridurre qui così non sfasiamo la struttura di un trial per riga
-#profits = profits[:, :, 0]
-#profits_cl = profits_cl[:, :, 0]
-#regret = regret[:, :, 0]
 
 mean_prof = np.mean(profits, axis=0)
 sd_prof = np.std(profits, axis=0)

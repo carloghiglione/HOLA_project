@@ -12,7 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from data_dynamic import data_dict
 env = Hyperparameters(data_dict["tr_prob"], data_dict["dir_par"], data_dict["pois_par"],
-                      data_dict["conv_rate"], data_dict["margin"], data_dict["time_phases"])
+                      data_dict["conv_rate"], data_dict["margin"], data_dict["time_phases"], data_dict["meppp"])
 
 sys.stdout.write(str(": Done") + '\n')
 

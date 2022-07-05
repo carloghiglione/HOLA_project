@@ -1,7 +1,6 @@
 import copy
 import sys
 
-n_user_cl = 1500
 seed = 17021890
 
 sys.stdout.write('\r' + str("Initializing simulation environment"))
@@ -26,7 +25,7 @@ best_prices = pull_prices(env=copy.deepcopy(env), conv_rates=copy.deepcopy(env.g
 sys.stdout.write('\r' + str("Finding Clairvoyant solution: Done") + '\n')
 
 # testing greedy
-starting_prices = np.zeros(5,dtype=int)  # all prices start at minimum
+starting_prices = np.zeros(5, dtype=int)  # all prices start at minimum
 starting_day = Day(env, starting_prices)
 starting_day.run_simulation()
 

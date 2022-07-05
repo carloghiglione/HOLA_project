@@ -1,7 +1,7 @@
 import copy
 import sys
 
-time_horizon = 50
+time_horizon = 20
 n_trials = 10
 seed = 17021890
 

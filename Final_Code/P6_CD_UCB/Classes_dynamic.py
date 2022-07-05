@@ -41,7 +41,7 @@ class Daily_Website:
     def sample_n_users(self, params):
         n_users = []
         for i in range(3):
-            n_users.append(int(params[i]*0.9 + npr.poisson(lam=params[i]*0.1, size=1)))
+            n_users.append(int(params[i]*0.95 + npr.poisson(lam=params[i]*0.05, size=1)))
         return n_users
 
     def select_conversion_rates(self, conv_rates, prices, time, phases: np.array):

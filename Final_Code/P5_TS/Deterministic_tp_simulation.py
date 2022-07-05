@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from data_5 import data_dict
 
 env = Hyperparameters(data_dict["tr_prob"], data_dict["trans_order_matrix"], data_dict["dir_par"], data_dict["pois_par"],
-                      data_dict["conv_rate"], data_dict["margin"], data_dict["lam"])
+                      data_dict["conv_rate"], data_dict["margin"], data_dict["lam"], data_dict["meppp"])
 
 sys.stdout.write(str(": Done") + '\n')
 

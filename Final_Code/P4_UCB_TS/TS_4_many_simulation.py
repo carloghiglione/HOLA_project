@@ -2,7 +2,7 @@ import copy
 import sys
 
 time_horizon = 50
-n_trials = 4
+n_trials = 10
 seed = 17021890
 
 sys.stdout.write('\r' + str("Initializing simulation environment"))

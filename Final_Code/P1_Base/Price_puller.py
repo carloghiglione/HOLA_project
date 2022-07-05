@@ -103,11 +103,21 @@ def pull_prices(env, conv_rates, alpha, n_buy, trans_prob, print_message="Simula
     if len(tran_prob) != 3:  # SE SONO PASSATI GLI STIMATORI E NON QUELLI VERI
         for i in range(5):
             for j in range(5):
-                if (tran_prob[i][j] > 1) or (np.isinf(tran_prob[i][j])):
-                    tran_prob[i][j] = 1
+                if (tran_prob[i, j] > 1) or (np.isinf(tran_prob[i, j])):
+                    tran_prob[i, j] = 1
         tr_prob = [tran_prob for _ in range(3)]
+        connectivity = np.zeros(shape=(5, 2), dtype=int)
+        for j in range(5):
+            connectivity[j, :] = np.array(np.where(tran_prob[j, :] > 0))
+
     else:
         tr_prob = tran_prob
+        connectivity = np.zeros(shape=(5, 2), dtype=int)
+        for j in range(5):
+            connectivity[j, :] = reduce(np.union1d, (np.array(np.where(tran_prob[0][j, :] > 0)),
+                                                     np.array(np.where(tran_prob[1][j, :] > 0)),
+                                                     np.array(np.where(tran_prob[2][j, :] > 0))))
+
     if len(alpha) != 3:
         alphas = [alpha/np.sum(alpha) for _ in range(3)]
     else:
@@ -120,11 +130,6 @@ def pull_prices(env, conv_rates, alpha, n_buy, trans_prob, print_message="Simula
     else:
         n_buys = n_buy
 
-    connectivity = np.zeros(shape=(5, 2), dtype=int)
-    for j in range(5):
-        connectivity[j, :] = reduce(np.union1d, (np.array(np.where(tran_prob[0][j, :] > 0)),
-                                                 np.array(np.where(tran_prob[1][j, :] > 0)),
-                                                 np.array(np.where(tran_prob[2][j, :] > 0))))
 
     count = 0
     cc = 4**5

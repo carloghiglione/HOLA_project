@@ -1,7 +1,7 @@
 import copy
 import sys
 
-time_horizon = 20
+time_horizon = 50
 n_trials = 10
 seed = 17021890
 
@@ -95,9 +95,12 @@ pseudoregret = np.array(pseudoregret)
 
 # viene salvata come lista di vettori colonna, che una volta messo come matrice ha una dimensione extra,
 # è più semplice ridurre qui così non sfasiamo la struttura di un trial per riga
-#profits = profits[:, :, 0]
-#profits_cl = profits_cl[:, :, 0]
-#regret = regret[:, :, 0]
+if len(profits.shape)==3:
+    profits = profits[:, :, 0]
+if len(profits_cl.shape)==3:
+    profits_cl = profits_cl[:, :, 0]
+if len(regret.shape)==3:
+    regret = regret[:, :, 0]
 
 mean_prof = np.mean(profits, axis=0)
 sd_prof = np.std(profits, axis=0)

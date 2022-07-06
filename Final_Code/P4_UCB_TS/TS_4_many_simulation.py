@@ -12,8 +12,12 @@ from P1_Base.Price_puller import pull_prices, expected_profits
 import numpy as np
 import matplotlib.pyplot as plt
 from P1_Base.data_cruise import data_dict
-env = Hyperparameters(data_dict["tr_prob"], data_dict["dir_par"], data_dict["pois_par"],
-                      data_dict["conv_rate"], data_dict["margin"], mean_extra_purchases_per_product=data_dict["meppp"])
+env = Hyperparameters(transition_prob_listofmatrix = data_dict["tr_prob"],
+                      dir_params_listofvector = data_dict["dir_par"],
+                      pois_param_vector = data_dict["pois_par"],
+                      conversion_rate_listofmatrix = data_dict["conv_rate"],
+                      margin_matrix = data_dict["margin"],
+                      mean_extra_purchases_per_product=data_dict["meppp"])
 
 sys.stdout.write(str(": Done") + '\n')
 

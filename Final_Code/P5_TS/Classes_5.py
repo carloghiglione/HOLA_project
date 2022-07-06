@@ -8,7 +8,7 @@ import copy
 #   •poisson parameters -> MEAN number of users for each type each day
 
 class Hyperparameters:
-    def __init__(self, transition_prob_listofmatrix, trans_order_matrix , dir_params_listofvector, pois_param_vector, conversion_rate_listofmatrix, margin_matrix, lam: float, mean_extra_purchases_per_product=2*np.ones(shape=(3, 5))):
+    def __init__(self, transition_prob_listofmatrix, trans_order_matrix , dir_params_listofvector, pois_param_vector, conversion_rate_listofmatrix, margin_matrix, lam: float, mean_extra_purchases_per_product):
         self.global_transition_prob = transition_prob_listofmatrix  # transition_prob[i,j] = prob that j is selected given i as primal, this econdes both selection probability and probability to see j
         self.trans_order = trans_order_matrix #0 se non esiste, 1 se primo secondario, 2 se secondo secondario
         self.dir_params = dir_params_listofvector  # vector with dirichlet parameters

@@ -33,9 +33,9 @@ class UCB(Learner):
         self.widths = np.array([np.inf for _ in range(n_arms)])  # to collect upper confidence bounds (- mean)
         self.margins = env.global_margin[prod, :]  # I know the set of prices, not the conversion rates
         self.c = c
-        self.env=env
-        self.prod=prod
-        self.n_arms=n_arms
+        self.env = env
+        self.prod = prod
+        self.n_arms = n_arms
         self.change_detection = [CUSUM(M, eps, h) for _ in range(n_arms)]
         self.detections = [[] for _ in range(n_arms)]
 
@@ -57,7 +57,7 @@ class UCB(Learner):
                 self.widths[idx] = self.c*np.sqrt(2 * np.log(self.t) / n)
             else:
                 self.widths[idx] = np.inf
-        if self.change_detection[arm_pulled].update(n_cliks=clicks,n_buy=sales):
+        if self.change_detection[arm_pulled].update(n_cliks=clicks, n_buy=sales):
             self.reset_arm(arm_pulled)
             self.detections[arm_pulled].append(self.t)
 
@@ -88,6 +88,7 @@ class Items_UCB_Learner:
         for i in range(self.n_items):
             self.learners[i].update(day.pulled_prices[i], clicks=day.individual_clicks[i], sales=day.individual_sales[i])
 
+
 class Abrupt_UCB(Learner):
 
     def __init__(self, env, prod, n_arms=4, c=1, M=30, eps=0.05, h=10):
@@ -96,9 +97,9 @@ class Abrupt_UCB(Learner):
         self.widths = np.array([np.inf for _ in range(n_arms)])  # to collect upper confidence bounds (- mean)
         self.margins = env.global_margin[prod, :]  # I know the set of prices, not the conversion rates
         self.c = c
-        self.env=env
-        self.prod=prod
-        self.n_arms=n_arms
+        self.env = env
+        self.prod = prod
+        self.n_arms = n_arms
         self.change_detection = [CUSUM(M, eps, h) for _ in range(n_arms)]
         self.detections = [[] for _ in range(n_arms)]
 
@@ -120,7 +121,7 @@ class Abrupt_UCB(Learner):
                 self.widths[idx] = self.c*np.sqrt(2 * np.log(self.t) / n)
             else:
                 self.widths[idx] = np.inf
-        if self.change_detection[arm_pulled].update(n_cliks=clicks,n_buy=sales):
+        if self.change_detection[arm_pulled].update(n_cliks=clicks, n_buy=sales):
             for arm in range(self.n_arms):
                 self.reset_arm(arm)
             self.detections[arm_pulled].append(self.t)

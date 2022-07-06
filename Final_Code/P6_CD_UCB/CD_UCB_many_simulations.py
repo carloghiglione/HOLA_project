@@ -13,8 +13,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from data_dynamic import data_dict
 from copy import deepcopy as cdc
-env = Hyperparameters(data_dict["tr_prob"], data_dict["dir_par"], data_dict["pois_par"],
-                      data_dict["conv_rate"], data_dict["margin"], data_dict["time_phases"], data_dict["meppp"])
+env = Hyperparameters(transition_prob_listofmatrix=data_dict["tr_prob"],
+                      dir_params_listofvector=data_dict["dir_par"],
+                      pois_param_vector=data_dict["pois_par"],
+                      conversion_rate_listofmatrix=data_dict["conv_rate"],
+                      margin_matrix=data_dict["margin"],
+                      time_phases=data_dict["time_phases"],
+                      mean_extra_purchases_per_product=data_dict["meppp"])
 
 sys.stdout.write(str(": Done") + '\n')
 
@@ -57,10 +62,11 @@ for sim in range(n_trials):
     day_profit = []
     day_profit_per_prod = []
     day_prices = np.zeros(5, dtype=int)
-    learner = Items_UCB_Learner(env)
+    learner = Items_UCB_Learner(copy.deepcopy(env))
     cl_profit = []
     psereg = np.zeros(time_horizon, dtype=float)
     e_prof = np.zeros(time_horizon, dtype=float)
+    env.t = 0
 
     print("=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*")
     sys.stdout.write('\r' + str("Simulation n.") + str(sim+1) + str(" out of ") + str(n_trials) + '\n')
@@ -77,7 +83,7 @@ for sim in range(n_trials):
 
         index = -1
         for i in range(len(env.phases) + 1):
-            if phase_big[i] < env.t <= phase_big[i + 1]:
+            if phase_big[i] <= env.t < phase_big[i + 1]:
                 index = i
         cl_profit.append(day.run_clairvoyant_simulation(best_prices[index]))
         e_prof[t] = e_profits[index][day_prices[0], day_prices[1], day_prices[2], day_prices[3], day_prices[4]]
@@ -131,8 +137,8 @@ if len(pseudoregret.shape) == 3:
 mean_prof = np.mean(profits, axis=0)
 sd_prof = np.std(profits, axis=0)
 
-cl_line = np.zeros(time_horizon)
-cl_band = np.zeros(time_horizon)
+cl_line = np.zeros(time_horizon, dtype=np.float64)
+cl_band = np.zeros(time_horizon, dtype=np.float64)
 if len(env.phases) > 0:
     for i in range(len(env.phases)):
         if i == 0:
@@ -183,3 +189,10 @@ total_pseudoregret = np.mean(np.sum(pseudoregret, axis=0))
 print("=============================")
 print("=============================")
 print("Mean total regret = " + str(total_pseudoregret))
+
+
+plt.figure(2)
+for i in range(n_trials):
+    plt.plot(profits_cl[i, :], color='red')
+plt.tight_layout()
+plt.show()

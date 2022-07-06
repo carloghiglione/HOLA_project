@@ -8,7 +8,7 @@ import copy
 #   •poisson parameters -> MEAN number of users for each type each day
 
 class Hyperparameters:
-    def __init__(self, transition_prob_listofmatrix, dir_params_listofvector, pois_param_vector, conversion_rate_listofmatrix, margin_matrix, time_phases, mean_extra_purchases_per_product=2*np.ones(shape=(3, 5))):
+    def __init__(self, transition_prob_listofmatrix, dir_params_listofvector, pois_param_vector, conversion_rate_listofmatrix, margin_matrix, time_phases, mean_extra_purchases_per_product):
         self.global_transition_prob = transition_prob_listofmatrix  # transition_prob[i,j] = prob that j is selected given i as primal, this econdes both selection probability and probability to see j
         self.dir_params = dir_params_listofvector  # vector with dirichlet parameters
         self.pois_param = pois_param_vector
@@ -45,7 +45,7 @@ class Daily_Website:
         return n_users
 
     def select_conversion_rates(self, conv_rates, prices, time, phases: np.array):
-        ret = np.ndarray(shape=(3, 5))
+        ret = -1*np.ones(shape=(3, 5), dtype=float)
         n_phases = len(phases)
 
         phase_big = [-1]
@@ -56,7 +56,7 @@ class Daily_Website:
         index = -1
 
         for i in range(n_phases+1):
-            if phase_big[i] < time <= phase_big[i+1]:
+            if phase_big[i] <= time < phase_big[i+1]:
                 index = i
 
         for i in range(3):
@@ -75,7 +75,7 @@ class Daily_Website:
         for t in range(3):
             users = []
             total = 0
-            for i in range(4):
+            for i in range(5):
                 n_dirty = self.n_users[t] * self.alphas[t][i+1]
                 if (n_dirty % 1 > 0.5) and (total + mt.ceil(n_dirty) <= self.n_users[t]):
                     users.append(mt.ceil(n_dirty))
@@ -86,7 +86,6 @@ class Daily_Website:
                 else:
                     for j in range(25):
                         print("ERROR IN USER EXTRACTION")
-            users.append(int(self.n_users[t] - total))
             users_pp[t, :] = np.array(users, dtype=int)
         return users_pp
 
@@ -97,9 +96,9 @@ class User:
         self.u_type = u_type
         self.mepp = website.env.mepp
         self.starting_product = starting_product
-        self.products = [0 for i in range(5)]  # 1 if product has been bought, 0 if not
-        self.clicked = [0 for i in range(5)]  # 1 if product has been clicked, 0 if not
-        self.cart = [0 for i in range(5)]  # n* elements per product
+        self.products = [0 for _ in range(5)]  # 1 if product has been bought, 0 if not
+        self.clicked = [0 for _ in range(5)]  # 1 if product has been clicked, 0 if not
+        self.cart = [0 for _ in range(5)]  # n* elements per product
         self.dynamic_transition_prob = copy.deepcopy(website.transition_prob[self.u_type])
 
     def new_primary(self, primary):
@@ -111,7 +110,7 @@ class User:
 
         if buy:
             self.products[primary] = 1
-            self.cart[primary] = 1 + self.mepp[self.u_type, primary]
+            self.cart[primary] = 1 + npr.poisson(size=1, lam=self.mepp[self.u_type, primary])[0]
             for j in range(5):
                 click = npr.binomial(n=1, size=1, p=self.dynamic_transition_prob[primary, j])
                 if click:
@@ -135,11 +134,11 @@ class Day:
         self.website = Daily_Website(g_web, self.pulled_prices)
         self.n_users = self.website.get_users_per_product_and_type()
         # n items sold per type of product
-        self.items_sold = [0 for i in range(5)]
+        self.items_sold = [0 for _ in range(5)]
         # n costumers that bought type of product, regardless of the amount
-        self.individual_sales = [0 for i in range(5)]
+        self.individual_sales = [0 for _ in range(5)]
         # n costumers that clicked type of product, regardless of if they bought
-        self.individual_clicks = [0 for i in range(5)]
+        self.individual_clicks = [0 for _ in range(5)]
 
     def run_simulation(self):
         for t in range(3):
@@ -156,7 +155,7 @@ class Day:
 
     def run_clairvoyant_simulation(self, best_prices):
         best_prices = best_prices.astype(int)
-        best_website = Daily_Website(self.env, best_prices)
+        best_website = Daily_Website(copy.deepcopy(self.env), best_prices)
         profit = 0
         for t in range(3):
             for p in range(5):

@@ -2,8 +2,8 @@ import copy
 import sys
 
 time_horizon = 90
-win = 14
-n_trials = 4
+win = 15
+n_trials = 10
 seed = 17021890
 
 sys.stdout.write('\r' + str("Initializing simulation environment"))
@@ -77,9 +77,9 @@ for sim in range(n_trials):
         day_prices = learner.pull_prices(copy.deepcopy(env), print_message)
 
         index = -1
-        for i in range(len(env.phases) + 1):
-            if phase_big[i] < env.t <= phase_big[i + 1]:
-                index = i
+        for inn in range(len(env.phases) + 1):
+            if phase_big[inn] <= env.t < phase_big[inn + 1]:
+                index = inn
         cl_profit.append(day.run_clairvoyant_simulation(best_prices[index]))
         e_prof[t] = e_profits[index][day_prices[0], day_prices[1], day_prices[2], day_prices[3], day_prices[4]]
         psereg[t] = optimal_expected_profit[index] - e_prof[t]

@@ -29,34 +29,36 @@ def profit_puller(prices, conv_rate_full, margins_full, tran_prob, alphas, mepp,
         click_in_chain = np.zeros(shape=5, dtype=float)
         click_in_chain[p1] = conv_rate[p1]
         prob_per_p1 = np.zeros(shape=5, dtype=float)
+        seenprob = np.zeros(shape=5, dtype=float)
 
         for p2 in np.intersect1d(connectivity[p1], to_visit):
             visited = np.array([p1, p2])
             to_visit = np.delete(copy.deepcopy(all_prods), visited)
 
-            click_in_chain[p2] = conv_rate[p2] * tran_prob[0][p1, p2] * click_in_chain[p1] * (
-                        1 - prob_per_p1[p2])
+            click_in_chain[p2] = conv_rate[p2]*tran_prob[0][p1, p2]*click_in_chain[p1]*(1-seenprob[p2])
+            seenprob[p2] += tran_prob[0][p1, p2]*click_in_chain[p1]
             prob_per_p1[p2] += cdc(click_in_chain[p2])
 
             for p3 in np.intersect1d(connectivity[p2], to_visit):
                 visited = np.array([p1, p2, p3])
                 to_visit = np.delete(copy.deepcopy(all_prods), visited)
 
-                click_in_chain[p3] = conv_rate[p3] * tran_prob[0][p2, p3] * click_in_chain[p2] * (
-                            1 - prob_per_p1[p3])
+                click_in_chain[p3] = conv_rate[p3]*tran_prob[0][p2, p3]*click_in_chain[p2]*(1-seenprob[p3])
+                seenprob[p3] += tran_prob[0][p2, p3]*click_in_chain[p2]
                 prob_per_p1[p3] += cdc(click_in_chain[p3])
 
                 for p4 in np.intersect1d(connectivity[p3], to_visit):
                     visited = np.array([p1, p2, p3, p4])
                     to_visit = np.delete(copy.deepcopy(all_prods), visited)
 
-                    click_in_chain[p4] = conv_rate[p4] * tran_prob[0][p3, p4] * click_in_chain[p3] * (
-                                1 - prob_per_p1[p4])
+                    click_in_chain[p4] = conv_rate[p4]*tran_prob[0][p3, p4]*click_in_chain[p3]*(1-seenprob[p4])
+                    seenprob[p4] += tran_prob[0][p3, p4]*click_in_chain[p3]
                     prob_per_p1[p4] += cdc(click_in_chain[p4])
 
                     for p5 in np.intersect1d(connectivity[p4], to_visit):
-                        prob_per_p1[p5] += conv_rate[p5] * tran_prob[0][p4, p5] * click_in_chain[p4] * (
-                                    1 - prob_per_p1[p5])
+                        prob_per_p1[p5] += conv_rate[p5]*tran_prob[0][p4, p5]*click_in_chain[p4]*(1-seenprob[p5])
+                        seenprob[p5] += tran_prob[0][p4, p5]*click_in_chain[p4]
+
 
         prob_per_p1[p1] = conv_rate[p1]
 

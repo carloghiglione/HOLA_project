@@ -13,8 +13,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from data_5 import data_dict
 
-env = Hyperparameters(data_dict["tr_prob"], data_dict["trans_order_matrix"], data_dict["dir_par"], data_dict["pois_par"],
-                      data_dict["conv_rate"], data_dict["margin"], data_dict["lam"], data_dict["meppp"])
+env = Hyperparameters(transition_prob_listofmatrix = data_dict["tr_prob"],
+                      trans_order_matrix = data_dict["trans_order_matrix"],
+                      dir_params_listofvector = data_dict["dir_par"],
+                      pois_param_vector = data_dict["pois_par"],
+                      conversion_rate_listofmatrix = data_dict["conv_rate"],
+                      margin_matrix = data_dict["margin"],
+                      lam = data_dict["lam"],
+                      mean_extra_purchases_per_product = data_dict["meppp"])
 
 sys.stdout.write(str(": Done") + '\n')
 

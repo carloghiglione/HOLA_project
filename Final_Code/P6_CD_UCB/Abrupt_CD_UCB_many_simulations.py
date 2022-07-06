@@ -77,7 +77,7 @@ for sim in range(n_trials):
 
         index = -1
         for i in range(len(env.phases) + 1):
-            if phase_big[i] < env.t <= phase_big[i + 1]:
+            if phase_big[i] <= env.t < phase_big[i + 1]:
                 index = i
         cl_profit.append(day.run_clairvoyant_simulation(best_prices[index]))
         e_prof[t] = e_profits[index][day_prices[0], day_prices[1], day_prices[2], day_prices[3], day_prices[4]]

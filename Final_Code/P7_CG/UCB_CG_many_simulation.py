@@ -28,7 +28,6 @@ np.random.seed(seed)
 day_profit = []
 day_normalized_profit = []
 day_profit_per_prod = []
-day_prices = np.zeros(shape=(2, 2, 5), dtype=int)
 best_prices = -1*np.ones(shape=(2, 2, 5), dtype=int)
 best_prices_temp = [-1*np.ones(shape=5, dtype=float) for _ in range(3)]
 for ty in range(3):
@@ -48,12 +47,15 @@ profits_for_config = expected_profits(env=copy.deepcopy(env), conv_rates=copy.de
                                       print_message=str(('\r' + str("Computing expected profits"))))
 
 sys.stdout.write('\r' + str("Computing expected profits: Done") + '\n')
-profits_for_config = float(np.sum(env.pois_param))*profits_for_config
-optimal_expected_profit = profits_for_config[best_prices[0],
-                                             best_prices[1],
-                                             best_prices[2],
-                                             best_prices[3],
-                                             best_prices[4]]
+optimal_expected_profit = (profits_for_config[0][best_prices[0, 0, 0], best_prices[0, 0, 1], best_prices[0, 0, 2],
+                                                 best_prices[0, 0, 3], best_prices[0, 0, 4]] *
+                           float(np.sum(env.pois_param[0])) +
+                           profits_for_config[1][
+                               best_prices[1, 0, 0], best_prices[1, 0, 1], best_prices[1, 0, 2], best_prices[1, 0, 3],
+                               best_prices[1, 0, 4]] * float(env.pois_param[1][0]) +
+                           profits_for_config[2][
+                               best_prices[1, 1, 0], best_prices[1, 1, 1], best_prices[1, 1, 2], best_prices[1, 1, 3],
+                               best_prices[1, 1, 4]] * float(env.pois_param[1][1]))
 
 profits = []
 profits_cl = []
@@ -65,7 +67,7 @@ pseudoregret = []
 for sim in range(n_trials):
     day_profit = []
     day_profit_per_prod = []
-    day_prices = np.zeros(5, dtype=int)
+    day_prices = np.zeros(shape=(2, 2, 5), dtype=int)
     learner = CG_Learner(copy.deepcopy(env), context_window=context_window)
     cl_profit = []
     e_prof = np.zeros(time_horizon, dtype=float)
@@ -79,7 +81,18 @@ for sim in range(n_trials):
         day = Day(copy.deepcopy(env), day_prices)
         day.run_simulation()
         day_profit.append(day.profit)
-        e_prof[t] = profits_for_config[day_prices[0], day_prices[1], day_prices[2], day_prices[3], day_prices[4]]
+        e_prof[t] = (profits_for_config[0][
+                               best_prices[0, 0, 0], best_prices[0, 0, 1], best_prices[0, 0, 2], best_prices[0, 0, 3],
+                               best_prices[0, 0, 4]] * float(env.pois_param[0][0]) +
+                     profits_for_config[0][
+                         best_prices[0, 1, 0], best_prices[0, 1, 1], best_prices[0, 1, 2], best_prices[0, 1, 3],
+                         best_prices[0, 1, 4]] * float(env.pois_param[0][1]) +
+                     profits_for_config[1][
+                               best_prices[1, 0, 0], best_prices[1, 0, 1], best_prices[1, 0, 2], best_prices[1, 0, 3],
+                               best_prices[1, 0, 4]] * float(env.pois_param[1][0]) +
+                     profits_for_config[2][
+                         best_prices[1, 1, 0], best_prices[1, 1, 1], best_prices[1, 1, 2], best_prices[1, 1, 3],
+                         best_prices[1, 1, 4]] * float(env.pois_param[1][1]))
         learner.update(day)
         day_prices = learner.pull_prices(print_message)
         cl_profit.append(day.run_clairvoyant_simulation(best_prices))
@@ -155,3 +168,6 @@ total_regret = np.mean(np.sum(regret, axis=0))
 print("=============================")
 print("=============================")
 print("Mean total regret = " + str(total_regret))
+print("=============================")
+print("Optimal profit = " + str(optimal_expected_profit))
+

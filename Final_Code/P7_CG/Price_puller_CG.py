@@ -194,7 +194,9 @@ def expected_profits(env, conv_rates, alpha, n_buy, trans_prob, print_message="S
     count = 0
     cc = 4**5
     prices = -1*np.ones(shape=(cc, 5), dtype=int)
-    profits = np.zeros(shape=(4, 4, 4, 4, 4), dtype=float)
+    profitsS = np.zeros(shape=(4, 4, 4, 4, 4), dtype=float)
+    profitsCA = np.zeros(shape=(4, 4, 4, 4, 4), dtype=float)
+    profitsCG = np.zeros(shape=(4, 4, 4, 4, 4), dtype=float)
 
     sim_prices = np.zeros(5, dtype=int)
 
@@ -208,39 +210,42 @@ def expected_profits(env, conv_rates, alpha, n_buy, trans_prob, print_message="S
                     sim_prices[3] = p4
                     for p5 in range(4):
                         sim_prices[4] = p5
-                        p0 = profit_puller(prices=sim_prices,
+                        pr0 = profit_puller(prices=sim_prices,
                                            conv_rate_full=cr_rate[0],
                                            margins_full=env.global_margin,
                                            tran_prob=tr_prob,
-                                           alphas=alphas,
+                                           alphas=alphas[0],
                                            mepp=n_buys,
                                            connectivity=connectivity,
-                                           pois=env.pois_param) * float(
-                            (env.pois_param[0][0] + env.pois_param[0][1]))
+                                           pois=env.pois_param)
 
 
-                        p1 = profit_puller(prices=sim_prices,
+                        pr1 = profit_puller(prices=sim_prices,
                                            conv_rate_full=cr_rate[1],
                                            margins_full=env.global_margin,
                                            tran_prob=tr_prob,
-                                           alphas=alphas,
+                                           alphas=alphas[1],
                                            mepp=n_buys,
                                            connectivity=connectivity,
-                                           pois=env.pois_param) * float(env.pois_param[1][0])
+                                           pois=env.pois_param)
 
-                        p2 = profit_puller(prices=sim_prices,
-                                           conv_rate_full=cr_rate[0],
+                        pr2 = profit_puller(prices=sim_prices,
+                                           conv_rate_full=cr_rate[2],
                                            margins_full=env.global_margin,
                                            tran_prob=tr_prob,
-                                           alphas=alphas,
+                                           alphas=alphas[2],
                                            mepp=n_buys,
                                            connectivity=connectivity,
-                                           pois=env.pois_param) * float(env.pois_param[1][1])
+                                           pois=env.pois_param)
 
-                        profits[p1, p2, p3, p4, p5] = (p0 + p1 + p2)/float(np.sum(env.pois_param))
+                        profitsS[p1, p2, p3, p4, p5] = cdc(pr0)
+                        profitsCA[p1, p2, p3, p4, p5] = cdc(pr1)
+                        profitsCG[p1, p2, p3, p4, p5] = cdc(pr2)
+
                         prices[count, :] = cdc(sim_prices)
 
                         count += 1
                 sys.stdout.write('\r' + print_message + str(", computing expected prices: ") + f'{count * 100 / cc} %')
     sys.stdout.write('\r' + print_message + str(", computing expected prices: 100%"))
-    return profits
+    profits_list = [profitsS, profitsCA, profitsCG]
+    return profits_list

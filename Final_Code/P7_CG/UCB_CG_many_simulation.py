@@ -82,17 +82,17 @@ for sim in range(n_trials):
         day.run_simulation()
         day_profit.append(day.profit)
         e_prof[t] = (profits_for_config[0][
-                               best_prices[0, 0, 0], best_prices[0, 0, 1], best_prices[0, 0, 2], best_prices[0, 0, 3],
-                               best_prices[0, 0, 4]] * float(env.pois_param[0][0]) +
+                               day_prices[0, 0, 0], day_prices[0, 0, 1], day_prices[0, 0, 2], day_prices[0, 0, 3],
+                               day_prices[0, 0, 4]] * float(env.pois_param[0][0]) +
                      profits_for_config[0][
-                         best_prices[0, 1, 0], best_prices[0, 1, 1], best_prices[0, 1, 2], best_prices[0, 1, 3],
-                         best_prices[0, 1, 4]] * float(env.pois_param[0][1]) +
+                         day_prices[0, 1, 0], day_prices[0, 1, 1], day_prices[0, 1, 2], day_prices[0, 1, 3],
+                         day_prices[0, 1, 4]] * float(env.pois_param[0][1]) +
                      profits_for_config[1][
-                               best_prices[1, 0, 0], best_prices[1, 0, 1], best_prices[1, 0, 2], best_prices[1, 0, 3],
-                               best_prices[1, 0, 4]] * float(env.pois_param[1][0]) +
+                               day_prices[1, 0, 0], day_prices[1, 0, 1], day_prices[1, 0, 2], day_prices[1, 0, 3],
+                               day_prices[1, 0, 4]] * float(env.pois_param[1][0]) +
                      profits_for_config[2][
-                         best_prices[1, 1, 0], best_prices[1, 1, 1], best_prices[1, 1, 2], best_prices[1, 1, 3],
-                         best_prices[1, 1, 4]] * float(env.pois_param[1][1]))
+                         day_prices[1, 1, 0], day_prices[1, 1, 1], day_prices[1, 1, 2], day_prices[1, 1, 3],
+                         day_prices[1, 1, 4]] * float(env.pois_param[1][1]))
         learner.update(day)
         day_prices = learner.pull_prices(print_message)
         cl_profit.append(day.run_clairvoyant_simulation(best_prices))

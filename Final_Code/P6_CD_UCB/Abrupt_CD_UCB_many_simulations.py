@@ -65,6 +65,7 @@ for sim in range(n_trials):
     print("=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*")
     sys.stdout.write('\r' + str("Simulation n.") + str(sim+1) + str(" out of ") + str(n_trials) + '\n')
     np.random.seed(sim*seed)
+    env.t=0
 
     for t in range(time_horizon):
         print_message = str('\r' + "Simulation n." + str(sim+1) + ": " + f'{t * 100 / time_horizon} %')

@@ -21,6 +21,7 @@ sys.stdout.write(str(": Done") + '\n')
 
 np.random.seed(seed)
 
+
 best_prices = [np.zeros(5, dtype=int) for _ in range(len(env.phases)+1)]
 e_profits = [np.zeros(shape=(4, 4, 4, 4, 4), dtype=float) for _ in range(len(env.phases)+1)]
 optimal_expected_profit = np.zeros(len(env.phases)+1, dtype=float)
@@ -66,6 +67,7 @@ for sim in range(n_trials):
     print("=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*")
     sys.stdout.write('\r' + str("Simulation n.") + str(sim+1) + str(" out of ") + str(n_trials) + '\n')
     np.random.seed(sim*seed)
+    env.t=0
 
     for t in range(time_horizon):
         print_message = str('\r' + "Simulation n." + str(sim+1) + ": " + f'{t * 100 / time_horizon} %')

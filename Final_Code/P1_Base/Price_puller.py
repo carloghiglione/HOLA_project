@@ -138,7 +138,7 @@ def pull_prices(env, conv_rates, alpha, n_buy, trans_prob, print_message="Simula
         n_buys = [n_buy for _ in range(3)]
     else:
         n_buys = n_buy
-
+    n_buys=np.array(n_buys, dtype=float)
 
     count = 0
     cc = 4**5

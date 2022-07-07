@@ -1,0 +1,215 @@
+Initializing simulation environment: Done
+Finding Clairvoyant solution: Done
+Clairvoyant price configuration: [[[0 0 3 1 2]
+  [0 0 3 1 2]]
+
+ [[3 3 1 1 0]
+  [0 2 1 1 1]]]
+Computing expected profits: Done
+=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+Simulation n.1 out of 10
+Simulation n.1: 100%
+Simulation n.1 completed, final price configuration: [[[0 0 3 1 2]
+  [0 0 3 1 2]]
+
+ [[3 2 2 1 1]
+  [3 2 2 1 1]]]
+context history:
+[[[0 0]
+  [0 0]]
+
+ [[0 0]
+  [1 2]]
+
+ [[0 0]
+  [0 0]]
+
+ [[0 0]
+  [1 1]]]
+=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+Simulation n.2 out of 10
+Simulation n.2: 100%
+Simulation n.2 completed, final price configuration: [[[1 0 3 1 2]
+  [1 0 3 1 2]]
+
+ [[3 2 2 1 1]
+  [3 2 2 1 1]]]
+context history:
+[[[0 0]
+  [0 0]]
+
+ [[0 0]
+  [1 2]]
+
+ [[0 0]
+  [0 0]]
+
+ [[0 0]
+  [1 1]]]
+=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+Simulation n.3 out of 10
+Simulation n.3: 100%
+Simulation n.3 completed, final price configuration: [[[0 0 3 0 2]
+  [0 0 3 0 2]]
+
+ [[3 2 2 2 1]
+  [3 2 2 2 1]]]
+context history:
+[[[0 0]
+  [0 0]]
+
+ [[0 0]
+  [1 2]]
+
+ [[0 0]
+  [0 0]]
+
+ [[0 0]
+  [1 1]]]
+=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+Simulation n.4 out of 10
+Simulation n.4: 100%
+Simulation n.4 completed, final price configuration: [[[3 3 2 1 0]
+  [0 2 3 1 2]]
+
+ [[3 3 2 1 0]
+  [0 2 3 1 2]]]
+context history:
+[[[0 0]
+  [0 0]]
+
+ [[0 0]
+  [1 2]]
+
+ [[0 0]
+  [0 0]]
+
+ [[0 1]
+  [0 1]]]
+=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+Simulation n.5 out of 10
+Simulation n.5: 100%
+Simulation n.5 completed, final price configuration: [[[2 0 3 0 2]
+  [2 0 3 0 2]]
+
+ [[3 2 2 1 1]
+  [3 2 2 1 1]]]
+context history:
+[[[0 0]
+  [0 0]]
+
+ [[0 0]
+  [1 2]]
+
+ [[0 0]
+  [0 0]]
+
+ [[0 0]
+  [1 1]]]
+=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+Simulation n.6 out of 10
+Simulation n.6: 100%
+Simulation n.6 completed, final price configuration: [[[0 0 3 1 2]
+  [0 0 3 1 2]]
+
+ [[3 2 1 1 0]
+  [0 2 1 3 1]]]
+context history:
+[[[0 0]
+  [0 0]]
+
+ [[0 0]
+  [1 2]]
+
+ [[0 0]
+  [0 0]]
+
+ [[0 0]
+  [1 2]]]
+=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+Simulation n.7 out of 10
+Simulation n.7: 100%
+Simulation n.7 completed, final price configuration: [[[0 0 3 1 2]
+  [0 0 3 1 2]]
+
+ [[3 2 2 1 1]
+  [3 2 2 1 1]]]
+context history:
+[[[0 0]
+  [0 0]]
+
+ [[0 0]
+  [1 2]]
+
+ [[0 0]
+  [0 0]]
+
+ [[0 0]
+  [1 1]]]
+=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+Simulation n.8 out of 10
+Simulation n.8: 100%
+Simulation n.8 completed, final price configuration: [[[3 3 2 1 0]
+  [0 2 2 1 2]]
+
+ [[3 3 2 1 0]
+  [0 2 2 1 2]]]
+context history:
+[[[0 0]
+  [0 0]]
+
+ [[0 0]
+  [1 2]]
+
+ [[0 0]
+  [0 0]]
+
+ [[0 1]
+  [0 1]]]
+=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+Simulation n.9 out of 10
+Simulation n.9: 100%
+Simulation n.9 completed, final price configuration: [[[0 0 3 1 2]
+  [0 0 3 1 2]]
+
+ [[3 2 2 1 1]
+  [3 2 2 1 1]]]
+context history:
+[[[0 0]
+  [0 0]]
+
+ [[0 0]
+  [1 2]]
+
+ [[0 0]
+  [0 0]]
+
+ [[0 0]
+  [1 1]]]
+=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+Simulation n.10 out of 10
+Simulation n.10: 100%
+Simulation n.10 completed, final price configuration: [[[2 0 3 1 2]
+  [2 0 3 1 2]]
+
+ [[3 3 1 2 0]
+  [0 2 2 1 1]]]
+context history:
+[[[0 0]
+  [0 0]]
+
+ [[0 0]
+  [1 2]]
+
+ [[0 0]
+  [0 0]]
+
+ [[0 0]
+  [1 2]]]
+=============================
+=============================
+Mean total regret = 20976837.72
+=============================
+Optimal profit = 2000161.5702225994
+
+Process finished with exit code 0

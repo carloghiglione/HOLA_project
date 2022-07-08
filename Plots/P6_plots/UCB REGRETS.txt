@@ -1,0 +1,11 @@
+P3_UCB
+Mean total regret = 7100097.76
+
+Abrupt_CD_UCB
+Mean total regret = 11958089.990193484
+
+CD_UCB
+Mean total regret = 11958089.990193484
+
+UCB_SW
+Mean total regret = 19729214.268600576

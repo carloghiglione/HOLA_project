@@ -3,7 +3,7 @@ import sys
 
 time_horizon = 90
 n_trials = 10
-seed = 17021890
+seed = 29041981
 
 sys.stdout.write('\r' + str("Initializing simulation environment"))
 from Classes_dynamic import *

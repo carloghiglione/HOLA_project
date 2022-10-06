@@ -1,8 +1,8 @@
-## Online Learning Applications Project.
+# Online Pricing Strategies for Cruise Website.
 
-### Academic Year 2021/2022, Politecnico di Milano
+### Online Learning Applications - A.Y. 2021/2022 - Politecnico di Milano
 
-### Carlo Ghiglione, Jacopo Ghirri, Marta Mastropietro, Alberto Francese
+Authors: Carlo Ghiglione, Jacopo Ghirri, Marta Mastropietro, Alberto Francese
 
 ### Abstract
 Implementation of simulated cruise booking website to navigate in different scenarios and selection of context-informed optimal 
